@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+apt-get update
+apt-get install -y git
+
+clear
+
+pip uninstall ontobdc
+
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_elias_brasidata
+# Depois tente novamente com a URL SSH
+
+python -m pip install git+ssh://git@github.com/EliasMPJunior/ontobdc-core.git@v0.9
