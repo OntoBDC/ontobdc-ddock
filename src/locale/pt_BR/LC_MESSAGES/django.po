@@ -87,6 +87,9 @@ msgstr "Voltar à Lista"
 msgid "Editar Container"
 msgstr "Editar Container"
 
+msgid "Compartilhar"
+msgstr "Compartilhar"
+
 msgid "Informações Básicas"
 msgstr "Informações Básicas"
 
@@ -182,6 +185,30 @@ msgstr "Colaboradores"
 
 msgid "container.collaborators.add"
 msgstr "Adicionar Colaborador"
+
+msgid "container.llm.think"
+msgstr "Pensar"
+
+msgid "container.llm.attach"
+msgstr "Anexar"
+
+msgid "container.debug.title"
+msgstr "Mensagens do Sistema"
+
+msgid "container.debug.live"
+msgstr "Conectado"
+
+msgid "container.debug.log1"
+msgstr "Inicializando ambiente do container..."
+
+msgid "container.debug.log2"
+msgstr "Sincronização de metadados concluída com sucesso."
+
+msgid "container.debug.log3"
+msgstr "Alta latência detectada no endpoint de indexação."
+
+msgid "container.debug.log4"
+msgstr "Aguardando novos eventos..."
 
 msgid "Container ainda não publicado"
 msgstr "Container ainda não publicado"

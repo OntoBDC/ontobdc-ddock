@@ -127,8 +127,8 @@ LOCALE_PATHS = [
 
 
 UNFOLD = {
-    "SITE_TITLE": "OntoBDC Gateway",
-    "SITE_HEADER": "OntoBDC Admin",
+    "SITE_TITLE": "OntoBDC Demo Gateway",
+    "SITE_HEADER": "OntoBDC",
     "SITE_URL": "/",
     "SITE_ICON": {
         "light": lambda request: "/static/icon-light.svg",
