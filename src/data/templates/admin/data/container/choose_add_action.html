@@ -1,0 +1,32 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="flex flex-col gap-6 max-w-3xl mx-auto mt-8 px-4">
+    <h1 class="text-2xl font-semibold mb-2">O que você deseja?</h1>
+    
+    <a href="?action_type=manual" class="block p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary-500 transition duration-200 cursor-pointer card-dark-bg card-dark-border">
+        <div class="flex items-center gap-4">
+            <div class="flex-shrink-0 rounded-full p-4">
+                <span class="material-symbols-outlined text-2xl">keyboard</span>
+            </div>
+            <div>
+                <h5 class="mb-1 text-xl font-bold tracking-tight">Criar um container novo?</h5>
+                <p class="font-normal">Preencha os dados do container através do formulário padrão do sistema.</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="?action_type=import" class="block p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary-500 transition duration-200 cursor-pointer card-dark-bg card-dark-border">
+        <div class="flex items-center gap-4">
+            <div class="flex-shrink-0 rounded-full p-4">
+                <span class="material-symbols-outlined text-2xl">file_upload</span>
+            </div>
+            <div>
+                <h5 class="mb-1 text-xl font-bold tracking-tight">Importar um arquivo (.obdc)</h5>
+                <p class="font-normal">Faça o upload de um pacote distribuído existente para integrar os dados automaticamente.</p>
+            </div>
+        </div>
+    </a>
+</div>
+{% endblock %}

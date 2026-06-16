@@ -1,0 +1,10 @@
+{
+  "name": "ontobdc-gateway",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/static/css/input.css -o ./src/static/css/output.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

@@ -1,0 +1,29 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm mt-8 max-w-3xl mx-auto border border-gray-200 dark:border-gray-700">
+    <div class="flex items-center gap-3 mb-6">
+        <div class="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 rounded-full p-3">
+            <span class="material-symbols-outlined text-xl">file_upload</span>
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Importar Container</h1>
+    </div>
+    
+    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center">
+        <span class="material-symbols-outlined text-4xl text-gray-400 dark:text-gray-500 mb-4">cloud_upload</span>
+        <p class="text-gray-700 dark:text-gray-400 mb-2">Arraste e solte o arquivo <strong>.obdc</strong> aqui</p>
+        <p class="text-sm text-gray-500 dark:text-gray-500 mb-6">ou clique para selecionar do seu computador</p>
+        
+        <button class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded transition duration-200">
+            Selecionar Arquivo
+        </button>
+    </div>
+
+    <div class="mt-8 flex justify-end">
+        <a href="../" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium py-2 px-4 transition duration-200">
+            Cancelar e Voltar
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -134,6 +134,9 @@ UNFOLD = {
         "light": lambda request: "/static/icon-light.svg",
         "dark": lambda request: "/static/icon-dark.svg",
     },
+    "STYLES": [
+        lambda request: "/static/css/custom.css",
+    ],
     "COLORS": {
         "primary": {
             "50": "250 253 255",

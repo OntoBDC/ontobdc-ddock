@@ -1,0 +1,13 @@
+/* Fix dark mode for cards using vanilla CSS */
+.dark .card-dark-bg {
+  background-color: #1f2937; /* Cinza escuro */
+}
+
+.dark .card-dark-border {
+  border-color: #374151; /* Cinza escuro para borda normal */
+}
+
+/* Hover com borda azul no dark mode também */
+.dark .card-dark-border:hover {
+  border-color: #0ea5e9 !important; /* Azul primário */
+}
