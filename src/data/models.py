@@ -1,5 +1,8 @@
+
 import uuid
 from django.db import models
+from .services import ContainerFileService
+
 
 class Container(models.Model):
     """
@@ -26,3 +29,7 @@ class Container(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def file(self):
+        return ContainerFileService(self)

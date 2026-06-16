@@ -137,6 +137,7 @@ UNFOLD = {
     "STYLES": [
         lambda request: "/static/css/custom.css",
     ],
+    "SHOW_LANGUAGES": True,
     "COLORS": {
         "primary": {
             "50": "250 253 255",
@@ -159,3 +160,10 @@ UNFOLD = {
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Media and Storage
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Container Storage (Future S3 / JetBackup coupling)
+CONTAINERS_STORAGE_ROOT = BASE_DIR.parent / 'storage' / 'containers'

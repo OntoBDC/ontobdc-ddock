@@ -1,0 +1,229 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="p-4 md:p-8 mt-4 max-w-[1600px] mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold uppercase tracking-wider text-gray-900 dark:text-white flex items-center gap-2">
+                <span class="material-symbols-outlined">dashboard</span>
+                {% trans "Container Dashboard" %} <span class="text-gray-400 font-light mx-2">|</span> {{ container.name }}
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">UUID: {{ container.id }}</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="../" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md transition duration-200">
+                {% trans "Voltar à Lista" %}
+            </a>
+            <a href="../change/{{ container.id }}/" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
+                {% trans "Editar" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Top KPIs Row -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Main KPI (Dark Box) -->
+            <div class="col-span-2 bg-gray-900 dark:bg-black text-white p-4 rounded-lg flex justify-between items-center shadow-sm">
+                <div>
+                    <div class="text-xs text-gray-400 uppercase tracking-wide">{% trans "Status Atual" %}</div>
+                    <div class="text-3xl font-bold mt-1 text-white">{% trans "ATIVO" %}</div>
+                </div>
+                <div class="w-32 h-3 bg-gray-700 rounded-sm overflow-hidden flex">
+                    <div class="bg-primary-400 w-4/5 h-full"></div>
+                    <div class="bg-gray-400 w-1/5 h-full opacity-50"></div>
+                </div>
+            </div>
+            <!-- Stat 1 -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center text-center card-dark-bg card-dark-border">
+                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 mb-1">sync_alt</span>
+                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{% trans "Eventos Processados" %}</div>
+                <div class="text-3xl font-bold mt-1 text-gray-900 dark:text-white">2,374</div>
+            </div>
+            <!-- Stat 2 -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center text-center card-dark-bg card-dark-border">
+                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 mb-1">timer</span>
+                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{% trans "Tempo Médio (ms)" %}</div>
+                <div class="text-3xl font-bold mt-1 text-gray-900 dark:text-white">39</div>
+            </div>
+            <!-- Stat 3 -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center text-center card-dark-bg card-dark-border">
+                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 mb-1">calendar_today</span>
+                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{% trans "Dias Online" %}</div>
+                <div class="text-3xl font-bold mt-1 text-gray-900 dark:text-white">12</div>
+            </div>
+            <!-- Stat 4 -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center text-center card-dark-bg card-dark-border">
+                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 mb-1">hub</span>
+                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{% trans "Conexões" %}</div>
+                <div class="text-3xl font-bold mt-1 text-gray-900 dark:text-white">13</div>
+            </div>
+        </div>
+
+        <!-- Middle Row: Charts & Info -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Real Container Info (Left Column) -->
+            <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm card-dark-bg card-dark-border flex flex-col">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 text-center">{% trans "Detalhes do Container" %}</h3>
+                <div class="space-y-4 flex-grow">
+                    <div>
+                        <span class="text-xs text-gray-500 block">{% trans "URI" %}</span>
+                        <span class="text-sm font-mono break-all text-gray-900 dark:text-gray-100">{{ container.uri }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">{% trans "Criado em" %}</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ container.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">URL</span>
+                        {% if container.url %}
+                            <a href="{{ container.url }}" target="_blank" class="text-sm text-primary-600 dark:text-primary-400 hover:underline truncate block">{{ container.url }}</a>
+                        {% else %}
+                            <span class="text-sm text-gray-400 italic">{% trans "Não informado" %}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">{% trans "Último Hash" %}</span>
+                        <span class="text-xs font-mono truncate block text-gray-900 dark:text-gray-100" title="{{ container.last_event_hash|default:'' }}">{{ container.last_event_hash|default:'-' }}</span>
+                    </div>
+                </div>
+                {% if container.description %}
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <span class="text-xs text-gray-500 block mb-1">{% trans "Descrição" %}</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ container.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Mock Horizontal Bar Chart (Middle Column) -->
+            <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm card-dark-bg card-dark-border">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 text-center">{% trans "Eventos por Tipo" %}</h3>
+                <div class="space-y-4 mt-6">
+                    <div class="flex items-center gap-3"><div class="w-16 text-xs text-right truncate dark:text-gray-300">Sync</div><div class="flex-1 h-4 bg-gray-100 dark:bg-gray-700"><div class="h-full bg-gray-900 dark:bg-white" style="width: 85%"></div></div></div>
+                    <div class="flex items-center gap-3"><div class="w-16 text-xs text-right truncate dark:text-gray-300">Query</div><div class="flex-1 h-4 bg-gray-100 dark:bg-gray-700"><div class="h-full bg-gray-800 dark:bg-gray-200" style="width: 65%"></div></div></div>
+                    <div class="flex items-center gap-3"><div class="w-16 text-xs text-right truncate dark:text-gray-300">Update</div><div class="flex-1 h-4 bg-gray-100 dark:bg-gray-700"><div class="h-full bg-primary-400 dark:bg-primary-500" style="width: 45%"></div></div></div>
+                    <div class="flex items-center gap-3"><div class="w-16 text-xs text-right truncate dark:text-gray-300">Delete</div><div class="flex-1 h-4 bg-gray-100 dark:bg-gray-700"><div class="h-full bg-primary-300 dark:bg-primary-400" style="width: 25%"></div></div></div>
+                    <div class="flex items-center gap-3"><div class="w-16 text-xs text-right truncate dark:text-gray-300">Error</div><div class="flex-1 h-4 bg-gray-100 dark:bg-gray-700"><div class="h-full bg-primary-200 dark:bg-primary-300" style="width: 10%"></div></div></div>
+                </div>
+            </div>
+
+            <!-- Mock Line/Area Chart (Right Wide Column) -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col card-dark-bg card-dark-border">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 text-center">{% trans "Volume de Tráfego (Últimos 30 dias)" %}</h3>
+                <div class="text-center text-[10px] text-gray-400 mb-4">Click Settings to filter for a specific year</div>
+                <div class="flex-1 flex items-end gap-[2px] mt-2 border-b border-l border-gray-200 dark:border-gray-700 px-2 pb-1 h-48 relative">
+                    <!-- Y Axis labels -->
+                    <div class="absolute -left-6 bottom-0 text-[10px] text-gray-400">0</div>
+                    <div class="absolute -left-6 top-1/2 text-[10px] text-gray-400">20</div>
+                    <div class="absolute -left-6 top-0 text-[10px] text-gray-400">60</div>
+                    
+                    <!-- Area Chart Mock using vertical bars -->
+                    <div class="w-full h-[30%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[50%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[40%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[70%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[60%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[80%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[90%] bg-primary-200 dark:bg-primary-800/40"></div><div class="w-full h-[60%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[40%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[50%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[30%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[45%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[65%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[85%] bg-primary-200 dark:bg-primary-800/40"></div><div class="w-full h-[75%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[55%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[35%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[60%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[80%] bg-primary-100 dark:bg-primary-900/40"></div><div class="w-full h-[40%] bg-primary-100 dark:bg-primary-900/40"></div>
+                </div>
+                <div class="flex justify-between text-[10px] font-bold text-gray-500 mt-2 px-2">
+                    <span>2003</span>
+                    <span>2008</span>
+                    <span>2013</span>
+                    <span>2018</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Vertical Bar Chart -->
+            <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm card-dark-bg card-dark-border">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 text-center">{% trans "Pico de Uso por Horário" %}</h3>
+                <div class="flex items-end justify-between h-48 mt-4 border-b border-l border-gray-200 dark:border-gray-700 p-2 relative">
+                    <!-- Y Axis -->
+                    <div class="absolute -left-8 bottom-0 text-[10px] text-gray-400">0</div>
+                    <div class="absolute -left-8 top-1/2 text-[10px] text-gray-400">1600</div>
+                    <div class="absolute -left-8 top-0 text-[10px] text-gray-400">3200</div>
+
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[40%] mx-1"></div>
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[80%] mx-1"></div>
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[85%] mx-1"></div>
+                    <div class="w-8 bg-gray-900 dark:bg-white h-[95%] mx-1 relative flex justify-center"><span class="absolute -top-5 text-xs font-bold dark:text-white">3,094</span></div>
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[75%] mx-1"></div>
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[75%] mx-1"></div>
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[80%] mx-1"></div>
+                    <div class="w-8 bg-primary-200 dark:bg-primary-800 h-[35%] mx-1"></div>
+                </div>
+                <div class="flex justify-between text-[10px] font-bold text-gray-500 mt-2 px-2">
+                    <span>20-24</span>
+                    <span>25-29</span>
+                    <span>30-34</span>
+                    <span>35-39</span>
+                    <span>40-44</span>
+                </div>
+            </div>
+
+            <!-- Donut Chart Mock -->
+            <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center card-dark-bg card-dark-border">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-6 text-center w-full">{% trans "Taxa de Sucesso" %}</h3>
+                <div class="relative w-48 h-48 rounded-full border-[20px] border-primary-100 dark:border-primary-900/50 flex items-center justify-center">
+                    <!-- CSS hack for donut segment (black part) -->
+                    <div class="absolute inset-[-20px] rounded-full border-[20px] border-transparent border-t-gray-900 dark:border-t-gray-100 border-r-gray-900 dark:border-r-gray-100 rotate-[15deg] opacity-20"></div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold dark:text-white">22,211</div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase">{% trans "Eventos" %}</div>
+                    </div>
+                </div>
+                <div class="flex gap-6 mt-6 text-xs">
+                    <div class="flex flex-col items-center"><span class="font-bold text-gray-500">50.8%</span> 200 OK</div>
+                    <div class="flex flex-col items-center"><span class="font-bold text-gray-500">46.5%</span> 4xx</div>
+                </div>
+            </div>
+
+            <!-- List/Progress (Diversity equivalent) -->
+            <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm card-dark-bg card-dark-border">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 text-center">{% trans "Fontes de Dados" %}</h3>
+                
+                <div class="flex justify-end gap-8 text-[10px] font-bold text-gray-500 mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <span class="w-16 text-center">API</span>
+                    <span class="w-16 text-center">Webhook</span>
+                    <span class="w-8 text-center">Outros</span>
+                </div>
+
+                <div class="space-y-3 mt-4">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="w-24 truncate dark:text-gray-300">Sistema A</span>
+                        <div class="flex gap-2 flex-1 justify-end items-center">
+                            <div class="w-16 h-3 bg-primary-200 dark:bg-primary-700 relative"><span class="absolute -left-6 top-0 text-[10px]">2,964</span></div>
+                            <div class="w-16 h-3 bg-gray-200 dark:bg-gray-600 relative"><span class="absolute -left-6 top-0 text-[10px]">3,199</span></div>
+                            <div class="w-8 font-bold border-l-2 border-gray-900 dark:border-white pl-1">163</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="w-24 truncate dark:text-gray-300">Banco de Dados</span>
+                        <div class="flex gap-2 flex-1 justify-end items-center">
+                            <div class="w-12 h-3 bg-primary-200 dark:bg-primary-700 relative"><span class="absolute -left-6 top-0 text-[10px]">1,653</span></div>
+                            <div class="w-14 h-3 bg-gray-200 dark:bg-gray-600 relative"><span class="absolute -left-6 top-0 text-[10px]">1,890</span></div>
+                            <div class="w-8 font-bold border-l-2 border-gray-900 dark:border-white pl-1">105</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="w-24 truncate dark:text-gray-300">IoT Sensors</span>
+                        <div class="flex gap-2 flex-1 justify-end items-center">
+                            <div class="w-14 h-3 bg-primary-200 dark:bg-primary-700 relative"><span class="absolute -left-6 top-0 text-[10px]">1,672</span></div>
+                            <div class="w-12 h-3 bg-gray-200 dark:bg-gray-600 relative"><span class="absolute -left-6 top-0 text-[10px]">1,837</span></div>
+                            <div class="w-8 font-bold border-l-2 border-gray-900 dark:border-white pl-1">109</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="w-24 truncate dark:text-gray-300">App Mobile</span>
+                        <div class="flex gap-2 flex-1 justify-end items-center">
+                            <div class="w-12 h-3 bg-primary-200 dark:bg-primary-700 relative"><span class="absolute -left-6 top-0 text-[10px]">1,690</span></div>
+                            <div class="w-10 h-3 bg-gray-200 dark:bg-gray-600 relative"><span class="absolute -left-6 top-0 text-[10px]">1,785</span></div>
+                            <div class="w-8 font-bold border-l-2 border-gray-900 dark:border-white pl-1">87</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

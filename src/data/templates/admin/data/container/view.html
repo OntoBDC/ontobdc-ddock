@@ -1,0 +1,131 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="p-4 md:p-8 mt-4 max-w-[1600px] mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold uppercase tracking-wider text-gray-900 dark:text-white flex items-center gap-2 break-all md:break-normal">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="hidden md:inline">{% trans "Container Dashboard" %} <span class="text-gray-400 font-light mx-2">|</span></span> 
+                <span>{{ container.name }}</span>
+            </h1>
+            <div class="mt-2">
+                {% if container.url %}
+                    <a href="{{ container.url }}" target="_blank" class="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">link</span>
+                        {{ container.url }}
+                    </a>
+                {% else %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border border-yellow-200 dark:border-yellow-800/50">
+                        <span class="material-symbols-outlined text-[14px] mr-1">info</span>
+                        {% trans "Container ainda não publicado" %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <a href="../../" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md transition duration-200">
+                {% trans "Voltar à Lista" %}
+            </a>
+            <a href="../change/{{ container.id }}/" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
+                {% trans "Editar" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Widgets Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Widget: container.file.count (Escuro adaptável) -->
+            <div class="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col justify-center">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-lg">folder_open</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold">{% trans "container.file.count" %}</span>
+                </div>
+                <div class="text-4xl font-bold mt-1 text-gray-900 dark:text-white">{{ container.file.all.count }}</div>
+            </div>
+
+            <!-- Widget: container.file.modified.last -->
+            <div class="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col justify-center">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-lg">update</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold">{% trans "container.file.last_modified" %}</span>
+                </div>
+                {% if container.file.modified.last %}
+                    <div class="text-lg font-semibold mt-1 text-gray-900 dark:text-white truncate" title="{{ container.file.modified.last.name }}">
+                        {{ container.file.modified.last.name }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {{ container.file.modified.last.date|date:"d/m/Y H:i" }}
+                    </div>
+                {% else %}
+                    <div class="text-lg font-semibold mt-1 text-gray-400 dark:text-gray-500">{% trans "Nenhum arquivo" %}</div>
+                    <div class="text-sm text-gray-400 dark:text-gray-500 mt-1">-</div>
+                {% endif %}
+            </div>
+
+            <!-- Widget: container.storage.usage (Barras Horizontais) -->
+            <div class="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col justify-center">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-lg">hard_drive</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold">{% trans "container.storage.usage" %}</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Local Bar -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{% trans "container.storage.local" %}</span>
+                            <span class="text-gray-900 dark:text-white font-bold">{{ container.file.size }} MB</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-4 overflow-hidden">
+                            <div class="bg-gray-900 dark:bg-white h-4 rounded-full" style="width: {% if container.file.size < 1 %}15{% elif container.file.size > 100 %}100{% else %}{{ container.file.size }}{% endif %}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Remote Bar -->
+                    <div>
+                        <div class="flex justify-between items-end text-xs mb-1.5">
+                            <span class="font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{% trans "container.storage.remote" %}</span>
+                            <span class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{% trans "container.storage.not_available" %}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-4 overflow-hidden">
+                            <div class="bg-gray-300 dark:bg-gray-700 h-4 rounded-full w-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget: container.health (Health Check) -->
+            <div class="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col justify-center">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-lg">health_and_safety</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold">{% trans "container.health.title" %}</span>
+                </div>
+                
+                <div class="space-y-3 mt-1">
+                    <!-- Warnings -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                            <span class="material-symbols-outlined text-lg {% if container.file.health.warnings > 0 %}text-yellow-500 dark:text-yellow-400{% else %}text-gray-400 dark:text-gray-500{% endif %}">warning</span>
+                            <span class="text-sm font-medium">{% trans "container.health.warnings" %}</span>
+                        </div>
+                        <span class="text-lg font-bold {% if container.file.health.warnings > 0 %}text-yellow-500 dark:text-yellow-400{% else %}text-gray-900 dark:text-white{% endif %}">{{ container.file.health.warnings }}</span>
+                    </div>
+
+                    <!-- Errors -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                            <span class="material-symbols-outlined text-lg {% if container.file.health.errors > 0 %}text-red-500 dark:text-red-400{% else %}text-gray-400 dark:text-gray-500{% endif %}">error</span>
+                            <span class="text-sm font-medium">{% trans "container.health.errors" %}</span>
+                        </div>
+                        <span class="text-lg font-bold {% if container.file.health.errors > 0 %}text-red-500 dark:text-red-400{% else %}text-gray-900 dark:text-white{% endif %}">{{ container.file.health.errors }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

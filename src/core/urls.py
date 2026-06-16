@@ -35,8 +35,11 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
     pass
 
+from django.conf.urls.i18n import i18n_patterns
+
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
+] + i18n_patterns(
     path('app/', admin.site.urls),
     path('', RedirectView.as_view(url='/app/', permanent=False)),
-]
+)

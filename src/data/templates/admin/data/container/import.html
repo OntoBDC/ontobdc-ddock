@@ -7,24 +7,24 @@
         <div class="flex-shrink-0 rounded-full p-4">
             <span class="material-symbols-outlined text-2xl">download</span>
         </div>
-        <h1 class="text-2xl font-semibold">Importar Container</h1>
+        <h1 class="text-2xl font-semibold">{% trans "Importar Container" %}</h1>
     </div>
     
     <!-- Opção 1: Colar URL -->
     <div class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm mb-6 card-dark-bg card-dark-border">
         <div class="flex items-center gap-3 mb-4">
             <span class="material-symbols-outlined text-xl">link</span>
-            <h2 class="text-lg font-semibold">Colar URL do Arquivo</h2>
+            <h2 class="text-lg font-semibold">{% trans "Colar URL do Arquivo" %}</h2>
         </div>
         <form method="post" class="space-y-4">
             {% csrf_token %}
             <div>
-                <label for="container-url" class="block text-sm font-medium mb-2">URL do arquivo .obdc</label>
-                <input type="url" id="container-url" name="container-url" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="https://exemplo.com/meu-container.obdc">
+                <label for="container-url" class="block text-sm font-medium mb-2">{% trans "URL do arquivo .obdc" %}</label>
+                <input type="url" id="container-url" name="container-url" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="{% trans "https://exemplo.com/meu-container.obdc" %}">
             </div>
             <div class="mt-4">
                 <button type="submit" name="action" value="url" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded transition duration-200">
-                    Importar via URL
+                    {% trans "Importar via URL" %}
                 </button>
             </div>
         </form>
@@ -33,7 +33,7 @@
     <!-- Divisor -->
     <div class="flex items-center my-8">
         <hr class="flex-grow border-t border-gray-200 dark:border-gray-600">
-        <span class="mx-4 font-medium">ou</span>
+        <span class="mx-4 font-medium">{% trans "ou" %}</span>
         <hr class="flex-grow border-t border-gray-200 dark:border-gray-600">
     </div>
 
@@ -41,25 +41,25 @@
     <div class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm card-dark-bg card-dark-border">
         <div class="flex items-center gap-3 mb-4">
             <span class="material-symbols-outlined text-xl">upload_file</span>
-            <h2 class="text-lg font-semibold">Subir Arquivo .obdc</h2>
+            <h2 class="text-lg font-semibold">{% trans "Subir Arquivo .obdc" %}</h2>
         </div>
         <form method="post" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
             <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center">
                 <span class="material-symbols-outlined text-4xl mb-4">cloud_upload</span>
-                <p class="mb-2">Arraste e solte o arquivo <strong>.obdc</strong> aqui</p>
-                <p class="text-sm mb-6">ou clique para selecionar do seu computador</p>
+                <p class="mb-2">{% trans "Arraste e solte o arquivo" %} <strong>.obdc</strong> {% trans "aqui" %}</p>
+                <p class="text-sm mb-6">{% trans "ou clique para selecionar do seu computador" %}</p>
                 <input type="file" id="container-file" name="container-file" class="hidden">
                 <button type="button" onclick="document.getElementById('container-file').click()" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded transition duration-200">
-                    Selecionar Arquivo
+                    {% trans "Selecionar Arquivo" %}
                 </button>
             </div>
             <div class="flex justify-between items-center mt-6">
-                <a href="../" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium py-2 px-4 transition duration-200">
-                    Cancelar e Voltar
+                <a href="../add" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium py-2 px-4 transition duration-200">
+                    {% trans "Cancelar e Voltar" %}
                 </a>
                 <button type="submit" name="action" value="file" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded transition duration-200">
-                    Importar Arquivo
+                    {% trans "Importar Arquivo" %}
                 </button>
             </div>
         </form>

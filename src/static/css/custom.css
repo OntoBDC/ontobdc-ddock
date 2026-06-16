@@ -36,3 +36,10 @@
   color: #f9fafb !important;
 }
 
+/* Forçar cores do widget Health (já que o Tailwind do Unfold expurga classes não nativas) */
+.text-yellow-500 { color: #eab308 !important; }
+.text-red-500 { color: #ef4444 !important; }
+
+.dark .dark\:text-yellow-400 { color: #facc15 !important; }
+.dark .dark\:text-red-400 { color: #f87171 !important; }
+
