@@ -11,3 +11,28 @@
 .dark .card-dark-border:hover {
   border-color: #0ea5e9 !important; /* Azul primário */
 }
+
+/* Fix input field background in dark mode */
+.dark input[type="url"] {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.dark input[type="url"]::placeholder {
+  color: #6b7280 !important;
+}
+
+.dark input[type="url"]:focus {
+  border-color: #0ea5e9 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+}
+
+/* Fix input file dark mode */
+.dark input[type="file"]::file-selector-button {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
