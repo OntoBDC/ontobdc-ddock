@@ -23,5 +23,7 @@ RUN pip install --upgrade pip && \
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+COPY ssh/* /root/.ssh/
+
 # Run the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

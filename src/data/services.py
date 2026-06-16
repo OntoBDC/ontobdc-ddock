@@ -126,4 +126,4 @@ class ContainerFileService:
         return ['dataset.properties', 'dataset.ttl', 'nid.ttl', 'nid.properties']
 
     def _ignore_package_folders(self):
-        return ['linkset', 'ontology']
+        return ['linkset', 'ontology', '__ontobdc__', '.__ontobdc__']
