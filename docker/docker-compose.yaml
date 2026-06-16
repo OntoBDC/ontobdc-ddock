@@ -1,0 +1,11 @@
+services:
+  obdc-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: obdc-gateway
+    working_dir: /app
+    volumes:
+      - ../src:/app
+    ports:
+      - "8000:8000"
