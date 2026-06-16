@@ -144,6 +144,45 @@ msgstr "Warnings"
 msgid "container.health.errors"
 msgstr "Errors"
 
+msgid "container.llm.title"
+msgstr "AI Assistant"
+
+msgid "container.llm.welcome"
+msgstr "Hello! I am the artificial intelligence assistant for this container. How can I help you analyze the data today?"
+
+msgid "container.llm.mock_user_query"
+msgstr "Summarize the latest modified files in this container."
+
+msgid "container.llm.placeholder"
+msgstr "Ask the assistant something..."
+
+msgid "container.actions.title"
+msgstr "Suggested Actions"
+
+msgid "container.actions.sync"
+msgstr "Sync Files"
+
+msgid "container.actions.sync_desc"
+msgstr "Sync with remote storage"
+
+msgid "container.actions.analyze"
+msgstr "Analyze Data"
+
+msgid "container.actions.analyze_desc"
+msgstr "Run AI pipeline on dataset"
+
+msgid "container.actions.clean"
+msgstr "Clear Cache"
+
+msgid "container.actions.clean_desc"
+msgstr "Remove temporary files"
+
+msgid "container.collaborators.title"
+msgstr "Collaborators"
+
+msgid "container.collaborators.add"
+msgstr "Add Collaborator"
+
 msgid "Container ainda não publicado"
 msgstr "Container not yet published"
 

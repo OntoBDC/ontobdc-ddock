@@ -126,6 +126,129 @@
                 </div>
             </div>
         </div>
+
+        <!-- Second Row: Complex Widgets -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4 auto-rows-max">
+            <!-- Widget: Suggested Actions (1 col, 3 rows tall) -->
+            <div class="lg:col-span-1 lg:row-span-3 h-full bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden card-dark-bg card-dark-border">
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2 card-dark-border" style="background-color: inherit;">
+                    <span class="material-symbols-outlined text-primary-600">lightbulb</span>
+                    <h3 class="font-semibold text-gray-900 uppercase tracking-wider text-sm llm-dark-text">{% trans "container.actions.title" %}</h3>
+                </div>
+                <div class="flex-1 p-4 overflow-y-auto space-y-3">
+                    <button class="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors text-left card-dark-border group">
+                        <span class="material-symbols-outlined text-gray-400 group-hover:text-primary-600">sync</span>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">{% trans "container.actions.sync" %}</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">{% trans "container.actions.sync_desc" %}</div>
+                        </div>
+                    </button>
+                    
+                    <button class="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors text-left card-dark-border group">
+                        <span class="material-symbols-outlined text-gray-400 group-hover:text-primary-600">analytics</span>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">{% trans "container.actions.analyze" %}</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">{% trans "container.actions.analyze_desc" %}</div>
+                        </div>
+                    </button>
+
+                    <button class="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors text-left card-dark-border group">
+                        <span class="material-symbols-outlined text-gray-400 group-hover:text-primary-600">cleaning_services</span>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">{% trans "container.actions.clean" %}</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">{% trans "container.actions.clean_desc" %}</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Widget: container.llm (AI Chat Interface - 2 cols, 3 rows tall) -->
+            <div class="lg:col-span-2 lg:row-span-3 h-full bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden card-dark-bg card-dark-border" style="min-height: 450px;">
+                <!-- Header -->
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2 card-dark-border" style="background-color: inherit;">
+                    <span class="material-symbols-outlined text-primary-600">smart_toy</span>
+                    <h3 class="font-semibold text-gray-900 uppercase tracking-wider text-sm llm-dark-text">{% trans "container.llm.title" %}</h3>
+                </div>
+                
+                <!-- Chat Area (Scrollable) -->
+                <div class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50/30" style="background-color: rgba(0,0,0,0.1);">
+                    <!-- AI Welcome Message -->
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border border-primary-200 llm-dark-icon-bg">
+                            <span class="material-symbols-outlined text-primary-600 text-sm">smart_toy</span>
+                        </div>
+                        <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none text-sm text-gray-700 shadow-sm max-w-[85%] card-dark-bg card-dark-border llm-dark-text-body">
+                            <p>{% trans "container.llm.welcome" %}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- User Message (Mock Example) -->
+                    <div class="flex gap-3 flex-row-reverse">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border border-gray-300 card-dark-border llm-dark-user-icon">
+                            <span class="material-symbols-outlined text-gray-600 text-sm llm-dark-text">person</span>
+                        </div>
+                        <div class="bg-primary-600 text-white p-3 rounded-2xl rounded-tr-none text-sm shadow-sm max-w-[85%]">
+                            <p>{% trans "container.llm.mock_user_query" %}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="p-4 bg-white border-t border-gray-200 card-dark-bg card-dark-border">
+                    <form class="flex gap-2" onsubmit="event.preventDefault();">
+                        <input type="text" placeholder="{% trans 'container.llm.placeholder' %}" class="flex-1 bg-gray-100 border border-gray-200 focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500 rounded-lg text-sm px-4 py-2.5 text-gray-900 placeholder-gray-500 outline-none transition-all llm-dark-input">
+                        <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white rounded-lg px-4 py-2.5 flex items-center justify-center transition-colors shadow-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                            <span class="material-symbols-outlined text-[20px]">send</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Widget: Collaborators (1 col, 3 rows tall) -->
+            <div class="lg:col-span-1 lg:row-span-3 h-full bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden card-dark-bg card-dark-border">
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2 card-dark-border" style="background-color: inherit;">
+                    <span class="material-symbols-outlined text-primary-600">group</span>
+                    <h3 class="font-semibold text-gray-900 uppercase tracking-wider text-sm llm-dark-text">{% trans "container.collaborators.title" %}</h3>
+                </div>
+                <div class="flex-1 p-4 overflow-y-auto space-y-4">
+                    <!-- Collaborator 1 -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                            JD
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">John Doe</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">Admin</div>
+                        </div>
+                    </div>
+                    <!-- Collaborator 2 -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm">
+                            AS
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">Alice Smith</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">Editor</div>
+                        </div>
+                    </div>
+                    <!-- Collaborator 3 -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-sm">
+                            RJ
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">Robert Johnson</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">Viewer</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-gray-200 card-dark-border">
+                    <button class="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:text-primary-600 hover:border-primary-500 transition-colors llm-dark-text card-dark-border">
+                        + {% trans "container.collaborators.add" %}
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -144,6 +144,45 @@ msgstr "Avisos"
 msgid "container.health.errors"
 msgstr "Erros"
 
+msgid "container.llm.title"
+msgstr "Assistente IA"
+
+msgid "container.llm.welcome"
+msgstr "Olá! Sou o assistente de inteligência artificial deste container. Como posso te ajudar a analisar os dados hoje?"
+
+msgid "container.llm.mock_user_query"
+msgstr "Faça um resumo dos últimos arquivos modificados neste container."
+
+msgid "container.llm.placeholder"
+msgstr "Pergunte algo ao assistente..."
+
+msgid "container.actions.title"
+msgstr "Ações Sugeridas"
+
+msgid "container.actions.sync"
+msgstr "Sincronizar Arquivos"
+
+msgid "container.actions.sync_desc"
+msgstr "Sincronizar com o storage remoto"
+
+msgid "container.actions.analyze"
+msgstr "Analisar Dados"
+
+msgid "container.actions.analyze_desc"
+msgstr "Rodar pipeline de IA no dataset"
+
+msgid "container.actions.clean"
+msgstr "Limpar Cache"
+
+msgid "container.actions.clean_desc"
+msgstr "Remover arquivos temporários"
+
+msgid "container.collaborators.title"
+msgstr "Colaboradores"
+
+msgid "container.collaborators.add"
+msgstr "Adicionar Colaborador"
+
 msgid "Container ainda não publicado"
 msgstr "Container ainda não publicado"
 
