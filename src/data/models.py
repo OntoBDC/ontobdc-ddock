@@ -33,3 +33,35 @@ class Container(models.Model):
     @property
     def file(self):
         return ContainerFileService(self)
+
+
+class ContainerLog(models.Model):
+    """
+    Stores logs for a Container.
+    """
+    LEVEL_DEBUG = 'DEBUG'
+    LEVEL_INFO = 'INFO'
+    LEVEL_WARNING = 'WARNING'
+    LEVEL_ERROR = 'ERROR'
+    LEVEL_CHOICES = [
+        (LEVEL_DEBUG, 'Debug'),
+        (LEVEL_INFO, 'Info'),
+        (LEVEL_WARNING, 'Warning'),
+        (LEVEL_ERROR, 'Error'),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
+    container = models.ForeignKey(Container, on_delete=models.CASCADE, related_name='logs')
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES, default=LEVEL_INFO)
+    message = models.TextField()
+    dispatched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['dispatched_at']
+        indexes = [
+            models.Index(fields=['container', 'dispatched_at']),
+            models.Index(fields=['container', 'level']),
+        ]
+
+    def __str__(self):
+        return f"{self.dispatched_at} [{self.level}] {self.container.name}: {self.message[:50]}"

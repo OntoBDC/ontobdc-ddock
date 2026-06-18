@@ -8,5 +8,6 @@ services:
     volumes:
       - ../src:/app
       - ../storage:/storage
+      - ../log:/log
     ports:
       - "8000:8000"

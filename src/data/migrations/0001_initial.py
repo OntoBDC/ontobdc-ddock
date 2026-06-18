@@ -12,19 +12,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Container',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('uri', models.CharField(max_length=512, unique=True)),
-                ('url', models.URLField(blank=True, max_length=1024)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('last_event_hash', models.CharField(blank=True, max_length=64)),
-            ],
-            options={
-                'ordering': ['-created_at'],
-            },
-        ),
     ]

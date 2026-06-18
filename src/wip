@@ -11,4 +11,4 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_elias_brasidata
 # Depois tente novamente com a URL SSH
 
-python -m pip install git+ssh://git@github.com/EliasMPJunior/ontobdc-core.git@v0.9
+python -m pip install git+ssh://git@github.com/EliasMPJunior/ontobdc-core.git@v0.10

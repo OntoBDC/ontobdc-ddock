@@ -9,12 +9,10 @@ class ContainerHealthAccessor:
 
     @property
     def warnings(self):
-        # Mocking 2 warnings so you can see the colored icon in action
-        return 2
+        return 0
 
     @property
     def errors(self):
-        # Mocking 0 errors so you can see the gray icon in action
         return 0
 
 

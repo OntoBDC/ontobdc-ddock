@@ -201,6 +201,12 @@ msgstr "System Logs"
 msgid "container.debug.live"
 msgstr "Connected"
 
+msgid "container.debug.down"
+msgstr "Disconnected"
+
+msgid "container.debug.connecting"
+msgstr "Connecting to OntoBDC Container"
+
 msgid "container.debug.log1"
 msgstr "Initializing container environment..."
 

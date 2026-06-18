@@ -1,6 +1,10 @@
 {% extends "unfold/layouts/base.html" %}
 {% load i18n %}
 
+{% block extrahead %}
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+{% endblock %}
+
 {% block content %}
 <div class="p-4 md:p-8 mt-4 max-w-[1600px] mx-auto">
     <!-- Header -->
@@ -166,7 +170,7 @@
                         </div>
                     </button>
                     
-                    <a href="{% url 'admin:data_container_check_storage' container.pk %}" class="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors text-left card-dark-border group">
+                    <a href="" class="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors text-left card-dark-border group">
                         <span class="material-symbols-outlined text-gray-400 group-hover:text-primary-600">health_and_safety</span>
                         <div>
                             <div class="text-sm font-medium text-gray-900 llm-dark-text">Check Storage</div>
@@ -286,63 +290,21 @@
                         <span class="material-symbols-outlined text-gray-500 dark:text-gray-400">terminal</span>
                         <h3 class="font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs">{% trans "container.debug.title" %}</h3>
                     </div>
-                    <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        {% trans "container.debug.live" %}
+                    <span id="log-status" class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                        <span id="log-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span id="log-status-text">{% trans "container.debug.down" %}</span>
                     </span>
                 </div>
-                
-                <!-- Log Area -->
-                <div id="log-area" class="flex-1 p-4 overflow-y-auto bg-gray-900 text-gray-300 font-mono text-xs space-y-2 dark:bg-black"></div>
 
-                <script>
-                    // Container ID is from the URL, adjust as needed (we'll pass it via context later, but for now, let's use a placeholder)
-                    const containerId = "{{ container.pk }}";
-                    const logArea = document.getElementById('log-area');
-                    
-                    // Get WebSocket URL
-                    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const wsUrl = `${wsProtocol}//${window.location.host}/ws/container/${containerId}/logs/`;
-                    
-                    const logSocket = new WebSocket(wsUrl);
-                    
-                    // Map log levels to colors
-                    const levelColors = {
-                        'INFO': 'text-blue-400',
-                        'SUCCESS': 'text-green-400',
-                        'WARN': 'text-yellow-400',
-                        'ERROR': 'text-red-400',
-                        'WARNING': 'text-yellow-400'
-                    };
-                    
-                    logSocket.onmessage = function(e) {
-                        const logData = JSON.parse(e.data);
-                        const levelClass = levelColors[logData.level.toUpperCase()] || 'text-gray-400';
-                        
-                        const logEntry = document.createElement('div');
-                        logEntry.className = 'flex gap-3';
-                        logEntry.innerHTML = `
-                            <span class="text-gray-500 whitespace-nowrap">${logData.timestamp}</span>
-                            <span class="${levelClass}">[${logData.level.toUpperCase()}]</span>
-                            <span class="text-gray-200">${logData.message}</span>
-                        `;
-                        
-                        logArea.appendChild(logEntry);
-                        logArea.scrollTop = logArea.scrollHeight;
-                    };
-                    
-                    logSocket.onopen = function() {
-                        console.log('Log WebSocket connected');
-                    };
-                    
-                    logSocket.onclose = function() {
-                        console.log('Log WebSocket disconnected');
-                        // Try to reconnect after 3 seconds
-                        setTimeout(() => {
-                            location.reload();
-                        }, 3000);
-                    };
-                </script>
+                <!-- Log Area -->
+                <div id="log-area" class="flex-1 p-4 overflow-y-auto bg-gray-900 text-gray-300 font-mono text-xs space-y-2 dark:bg-black">
+                    <div>
+                        <span class="text-gray-400">{% now "H:i:s" %}</span>
+                        <span class="text-blue-400">[INFO]</span>
+                        <span class="text-gray-300">{% trans "container.debug.connecting" %}...</span>
+                    </div>
+                </div>
+                {% include "admin/data/container/log_partial.html" with container=container last_line=0 finished=False %}
             </div>
         </div>
     </div>

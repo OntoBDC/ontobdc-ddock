@@ -1,11 +1,13 @@
 from django.contrib import admin
-from django.urls import path, reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
-from django.contrib import messages
-from django.utils.html import format_html
 from unfold.admin import ModelAdmin
-from .models import Container
+from django.urls import path, reverse
+from django.utils.html import format_html
+from .models import Container, ContainerLog
+from django.http import HttpResponseRedirect
+from .log import GatewayContainerLogRepository
+from concurrent.futures import ThreadPoolExecutor
+from .loaders import GatewayContainerLoader
+from django.shortcuts import render, get_object_or_404
 
 @admin.register(Container)
 class ContainerAdmin(ModelAdmin):
@@ -31,6 +33,7 @@ class ContainerAdmin(ModelAdmin):
         custom_urls = [
             path('import/', self.admin_site.admin_view(self.import_view), name='data_container_import'),
             path('<uuid:pk>/view/', self.admin_site.admin_view(self.view_container), name='data_container_view'),
+            path('<uuid:pk>/log/', self.admin_site.admin_view(self.container_log_view), name='data_container_log'),
         ]
         return custom_urls + urls
 
@@ -74,10 +77,55 @@ class ContainerAdmin(ModelAdmin):
 
     def view_container(self, request, pk):
         container = get_object_or_404(Container, pk=pk)
+        
         context = {
             **self.admin_site.each_context(request),
-            'title': f'Ver Container: {container.name}',
+            'title': f'Container: {container.name}',
             'opts': self.model._meta,
             'container': container,
         }
+
+        # Function to run in a separate thread
+        def run_dispatch():
+            GatewayContainerLoader.dispatch(container)
+
+        # Run the dispatch in a future thread
+        executor = ThreadPoolExecutor(max_workers=1)
+        executor.submit(run_dispatch)
+        executor.shutdown(wait=False)
+
         return render(request, 'admin/data/container/view.html', context)
+        
+    def container_log_view(self, request, pk):
+        container: Container = get_object_or_404(Container, pk=pk)
+        after_id: int = request.GET.get('after', 0)
+        log_repository: GatewayContainerLogRepository = GatewayContainerLogRepository()
+        
+        # Get logs after the given ID to avoid repetition
+        logs = log_repository.get_log_after(container_id=str(pk), log_id=after_id)
+        
+        # Format the log lines
+        lines = []
+        last_id = after_id
+        for log in logs:
+            timestamp = log.dispatched_at.strftime('%H:%M:%S')
+            lines.append((timestamp, log.level, log.message))
+            last_id = log.id
+        
+        # Create the response
+        finished = not logs.exists() or False  # For future use
+        
+        return render(request, 'admin/data/container/log_partial.html', {
+            'container': container,
+            'lines': lines,
+            'last_line': last_id,
+            'finished': finished,
+        })
+
+@admin.register(ContainerLog)
+class ContainerLogAdmin(ModelAdmin):
+    list_display = ['container', 'level', 'message', 'dispatched_at']
+    list_filter = ['container', 'level', 'dispatched_at']
+    search_fields = ['message']
+    readonly_fields = ['container', 'level', 'message', 'dispatched_at']
+    date_hierarchy = 'dispatched_at'
