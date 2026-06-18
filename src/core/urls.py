@@ -17,24 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
-
-# Setup Unfold admin for default models
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
-from unfold.admin import ModelAdmin
-
-admin.site.unregister(User)
-admin.site.unregister(Group)
-
-@admin.register(User)
-class UserAdmin(BaseUserAdmin, ModelAdmin):
-    pass
-
-@admin.register(Group)
-class GroupAdmin(BaseGroupAdmin, ModelAdmin):
-    pass
-
 from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [

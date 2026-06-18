@@ -43,12 +43,12 @@ class GatewayLogStrategy(LogStrategyResource):
         self._log_repository: GatewayContainerLogRepository = GatewayContainerLogRepository()
         
         super().__init__(
-            print_log=self._save_log,
+            print_log=self.save_log,
             log_level=log_level,
             log_repository=self._log_repository
         )
         
-    def _save_log(self, level: str, message: str):
+    def save_log(self, level: str, message: str):
         """
         Save a log entry to the database.
         """
@@ -57,11 +57,3 @@ class GatewayLogStrategy(LogStrategyResource):
             level=level,
             message=message
         )
-
-
-# ContainerLog(
-#             container_id=cls.container_id,
-#             level=level,
-#             message=message,
-#             dispatched_at=datetime.now()
-#         )

@@ -9,5 +9,6 @@ services:
       - ../src:/app
       - ../storage:/storage
       - ../log:/log
+      - ../../wip/src/ontobdc:/usr/local/lib/python3.12/site-packages/ontobdc:ro
     ports:
       - "8000:8000"

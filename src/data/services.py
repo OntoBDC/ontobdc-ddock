@@ -70,7 +70,7 @@ class ContainerFileService:
         return os.path.exists(self._get_storage_path())
 
     def _get_storage_path(self):
-        return os.path.join(settings.CONTAINERS_STORAGE_ROOT, str(self.container.id))
+        return os.path.join(settings.CONTAINER_STORAGE_ROOT, str(self.container.id))
 
     def _get_file_path(self, filename):
         return os.path.join(self._get_storage_path(), filename)

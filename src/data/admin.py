@@ -1,13 +1,29 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group as DefaultGroup
 from unfold.admin import ModelAdmin
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.urls import path, reverse
 from django.utils.html import format_html
-from .models import Container, ContainerLog
+from .models import Container, ContainerLog, User, Group
 from django.http import HttpResponseRedirect
 from .log import GatewayContainerLogRepository
 from concurrent.futures import ThreadPoolExecutor
 from .loaders import GatewayContainerLoader
 from django.shortcuts import render, get_object_or_404
+
+admin.site.unregister(DefaultGroup)
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin, ModelAdmin):
+    form = UserChangeForm
+    add_form = UserCreationForm
+    change_password_form = AdminPasswordChangeForm
+
+@admin.register(Group)
+class GroupAdmin(BaseGroupAdmin, ModelAdmin):
+    pass
 
 @admin.register(Container)
 class ContainerAdmin(ModelAdmin):
@@ -87,7 +103,7 @@ class ContainerAdmin(ModelAdmin):
 
         # Function to run in a separate thread
         def run_dispatch():
-            GatewayContainerLoader.dispatch(container)
+            GatewayContainerLoader.dispatch(request.user, container)
 
         # Run the dispatch in a future thread
         executor = ThreadPoolExecutor(max_workers=1)
