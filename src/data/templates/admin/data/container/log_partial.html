@@ -20,16 +20,28 @@
             <span class="text-green-400">[{{ level }}]</span>
           {% elif level == 'WARNING' %}
             <span class="text-yellow-400">[{{ level }}]</span>
-          {% elif level == 'ERROR' %}
+          {% elif level == 'ERROR' or level == 'FAIL' %}
             <span class="text-red-400">[{{ level }}]</span>
+          {% elif level == 'READY' %}
+            <span class="text-green-500">[{{ level }}]</span>
           {% endif %}
           <span class="text-gray-300">{{ message }}</span>
         </div>
       {% endfor %}
     </div>
+  {% endif %}
 
-    <!-- Swap status to LIVE -->
-    <span id="log-status-dot" hx-swap-oob="outerHTML" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-    <span id="log-status-text" hx-swap-oob="outerHTML">{% trans "container.debug.live" %}</span>
+  <!-- Swap status based on last level (always do this when last_level is available) -->
+  {% if last_level %}
+    {% if last_level == 'READY' %}
+      <span id="log-status-dot" hx-swap-oob="outerHTML" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      <span id="log-status-text" hx-swap-oob="outerHTML">{% trans "container.debug.ready" %}</span>
+    {% elif last_level == 'FAIL' %}
+      <span id="log-status-dot" hx-swap-oob="outerHTML" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+      <span id="log-status-text" hx-swap-oob="outerHTML">{% trans "container.debug.down" %}</span>
+    {% else %}
+      <span id="log-status-dot" hx-swap-oob="outerHTML" class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+      <span id="log-status-text" hx-swap-oob="outerHTML">{% trans "container.debug.processing" %}</span>
+    {% endif %}
   {% endif %}
 </div>

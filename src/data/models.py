@@ -82,11 +82,15 @@ class ContainerLog(models.Model):
     LEVEL_INFO = 'INFO'
     LEVEL_WARNING = 'WARNING'
     LEVEL_ERROR = 'ERROR'
+    LEVEL_READY = 'READY'
+    LEVEL_FAIL = 'FAIL'
     LEVEL_CHOICES = [
         (LEVEL_DEBUG, 'Debug'),
         (LEVEL_INFO, 'Info'),
         (LEVEL_WARNING, 'Warning'),
         (LEVEL_ERROR, 'Error'),
+        (LEVEL_READY, 'Connected'),
+        (LEVEL_FAIL, 'Fail'),
     ]
 
     id = models.BigAutoField(primary_key=True)

@@ -1,5 +1,8 @@
+from ontobdc.cli.domain.resource.command import CheckFailCommandResponse, ExceptionCommandResponse
+
 from django.contrib import admin
 from django.contrib.auth.models import Group as DefaultGroup
+from data.error import log_and_raise_error
 from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -94,16 +97,48 @@ class ContainerAdmin(ModelAdmin):
     def view_container(self, request, pk):
         container = get_object_or_404(Container, pk=pk)
         
+        # Add initial "Processing" log
+        log_repo = GatewayContainerLogRepository()
+        log_repo.add_log(
+            container_id=str(container.id),
+            level=ContainerLog.LEVEL_INFO,
+            message="Processing..."
+        )
+        
+        # Get the last log to initialize the poller correctly
+        last_log = container.logs.order_by('-id').first()
+        last_line = last_log.id if last_log else 0
+        last_level = last_log.level if last_log else None
+        
         context = {
             **self.admin_site.each_context(request),
             'title': f'Container: {container.name}',
             'opts': self.model._meta,
             'container': container,
+            'last_line': last_line,
+            'last_level': last_level,
         }
 
         # Function to run in a separate thread
         def run_dispatch():
-            GatewayContainerLoader.dispatch(request.user, container)
+            response, log_strategy = GatewayContainerLoader.dispatch(request.user, container, incoming_args = ['check','--all'])
+
+            # print(response, type(response), isinstance(response, ExceptionCommandResponse), isinstance(response, CheckFailCommandResponse))
+            if isinstance(response, ExceptionCommandResponse):
+                log_strategy.set_as_fail('The obdc container could not be started.')
+            elif isinstance(response, CheckFailCommandResponse):
+                try:
+                    response, log_strategy = GatewayContainerLoader.dispatch(request.user, container, incoming_args = ['check','--fix'])
+                    if isinstance(response, ExceptionCommandResponse):
+                        log_and_raise_error(Exception('Failed to fix checks.'))
+                        return
+                except Exception as e:
+                    log_strategy.set_as_fail(f'{str(e).strip(".")}.')
+                    log_and_raise_error(Exception(f'Failed on checks: {str(e).strip(".")}.'))
+                    return
+            else:
+                log_strategy.set_as_ready()
+
 
         # Run the dispatch in a future thread
         executor = ThreadPoolExecutor(max_workers=1)
@@ -115,6 +150,12 @@ class ContainerAdmin(ModelAdmin):
     def container_log_view(self, request, pk):
         container: Container = get_object_or_404(Container, pk=pk)
         after_id: int = request.GET.get('after', 0)
+        # Convert to int (request.GET.get returns string)
+        try:
+            after_id = int(after_id)
+        except (ValueError, TypeError):
+            after_id = 0
+        
         log_repository: GatewayContainerLogRepository = GatewayContainerLogRepository()
         
         # Get logs after the given ID to avoid repetition
@@ -123,10 +164,21 @@ class ContainerAdmin(ModelAdmin):
         # Format the log lines
         lines = []
         last_id = after_id
+        last_level = None
+        
+        # If it's the first load (after_id=0), check the last log to get current status
+        if after_id == 0:
+            last_log = container.logs.order_by('-id').first()
+            if last_log:
+                last_level = last_log.level
+                last_id = last_log.id
+        
+        # If there are new logs, process them
         for log in logs:
             timestamp = log.dispatched_at.strftime('%H:%M:%S')
             lines.append((timestamp, log.level, log.message))
             last_id = log.id
+            last_level = log.level
         
         # Create the response
         finished = not logs.exists() or False  # For future use
@@ -135,6 +187,7 @@ class ContainerAdmin(ModelAdmin):
             'container': container,
             'lines': lines,
             'last_line': last_id,
+            'last_level': last_level,
             'finished': finished,
         })
 

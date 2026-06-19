@@ -57,3 +57,15 @@ class GatewayLogStrategy(LogStrategyResource):
             level=level,
             message=message
         )
+
+    def set_as_ready(self):
+        """
+        Set the container as ready.
+        """
+        self.save_log(ContainerLog.LEVEL_READY, '')
+
+    def set_as_fail(self, message: str):
+        """
+        Set the container as fail.
+        """
+        self.save_log(ContainerLog.LEVEL_FAIL, message)

@@ -291,20 +291,26 @@
                         <h3 class="font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs">{% trans "container.debug.title" %}</h3>
                     </div>
                     <span id="log-status" class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                        <span id="log-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                        <span id="log-status-text">{% trans "container.debug.down" %}</span>
+                        {% if last_level == 'READY' %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.ready" %}</span>
+                        {% elif last_level == 'FAIL' %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.down" %}</span>
+                        {% elif last_level %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.processing" %}</span>
+                        {% else %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.down" %}</span>
+                        {% endif %}
                     </span>
                 </div>
 
                 <!-- Log Area -->
                 <div id="log-area" class="flex-1 p-4 overflow-y-auto bg-gray-900 text-gray-300 font-mono text-xs space-y-2 dark:bg-black">
-                    <div>
-                        <span class="text-gray-400">{% now "H:i:s" %}</span>
-                        <span class="text-blue-400">[INFO]</span>
-                        <span class="text-gray-300">{% trans "container.debug.connecting" %}...</span>
-                    </div>
                 </div>
-                {% include "admin/data/container/log_partial.html" with container=container last_line=0 finished=False %}
+                {% include "admin/data/container/log_partial.html" with container=container last_line=last_line last_level=last_level finished=False %}
             </div>
         </div>
     </div>

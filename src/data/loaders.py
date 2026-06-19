@@ -1,7 +1,7 @@
 
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 from django.conf import settings
 from data.models import Container, User
 from data.log import GatewayLogStrategy
@@ -40,11 +40,10 @@ class GatewayContainerLoader:
         os.environ["ONTOBDC_PROJECT_ROOT"] = str(root_dir)
 
     @classmethod
-    def dispatch(cls, user: User, container: Container, log_level: LogLevelPort = LogLevel.INFORMATIONAL) -> None:
+    def dispatch(cls, user: User, container: Container, incoming_args: List[str], log_level: LogLevelPort = LogLevel.INFORMATIONAL) -> Tuple[CommandResponse, GatewayLogStrategy]:
         """
         Dispatch the OntoBDC command with the given container and log level.
         """
-        incoming_args: List[str] = ['check','--all']
         try:
             cls.set_container_storage_root(user, container)
             cli_command_run: CliCommandPort = CliCommandRunAdapter.make(incoming_args)
@@ -59,25 +58,29 @@ class GatewayContainerLoader:
                     cli_command_run.set_log_strategy(log_strategy)
 
                 response: CommandResponse = cli_command_run.run()
-                cls.render(cls, response, log_strategy)
+                return (cls.render(cls, response, log_strategy), log_strategy)
 
         except Exception as e:
             from data.error import log_and_raise_error
             log_and_raise_error(e)
 
     @staticmethod
-    def render_exception(response: CommandResponse, log_strategy: GatewayLogStrategy) -> None:
+    def render_exception(response: CommandResponse, log_strategy: GatewayLogStrategy) -> CommandResponse:
         """
         Render the command exception response and save it to the log strategy.
         """
         log_strategy.save_log(LogLevel.ERROR.name, response.description)
 
+        return response
+
     @staticmethod
-    def render(cls, response: CommandResponse, log_strategy: GatewayLogStrategy) -> None:
+    def render(cls, response: CommandResponse, log_strategy: GatewayLogStrategy) -> CommandResponse:
         """
         Render the command response and save it to the log strategy.
         """
         if isinstance(response, ExceptionCommandResponse):
-            cls.render_exception(response, log_strategy)
+            return cls.render_exception(response, log_strategy)
+
+        return response
 
 

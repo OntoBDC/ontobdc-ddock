@@ -207,6 +207,12 @@ msgstr "Disconnected"
 msgid "container.debug.connecting"
 msgstr "Connecting to OntoBDC Container"
 
+msgid "container.debug.processing"
+msgstr "Processing"
+
+msgid "container.debug.ready"
+msgstr "Ready"
+
 msgid "container.debug.log1"
 msgstr "Initializing container environment..."
 
