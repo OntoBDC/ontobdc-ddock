@@ -71,6 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+AUTH_USER_MODEL = 'data.User'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -166,4 +167,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Container Storage (Future S3 / JetBackup coupling)
-CONTAINERS_STORAGE_ROOT = BASE_DIR.parent / 'storage' / 'containers'
+STORAGE_ROOT = BASE_DIR.parent / 'storage'
+USER_STORAGE_ROOT = STORAGE_ROOT / 'usr'
+CONTAINER_STORAGE_ROOT = 'ct'

@@ -9,12 +9,10 @@ class ContainerHealthAccessor:
 
     @property
     def warnings(self):
-        # Mocking 2 warnings so you can see the colored icon in action
-        return 2
+        return 0
 
     @property
     def errors(self):
-        # Mocking 0 errors so you can see the gray icon in action
         return 0
 
 
@@ -72,7 +70,7 @@ class ContainerFileService:
         return os.path.exists(self._get_storage_path())
 
     def _get_storage_path(self):
-        return os.path.join(settings.CONTAINERS_STORAGE_ROOT, str(self.container.id))
+        return os.path.join(settings.CONTAINER_STORAGE_ROOT, str(self.container.id))
 
     def _get_file_path(self, filename):
         return os.path.join(self._get_storage_path(), filename)
@@ -126,4 +124,4 @@ class ContainerFileService:
         return ['dataset.properties', 'dataset.ttl', 'nid.ttl', 'nid.properties']
 
     def _ignore_package_folders(self):
-        return ['linkset', 'ontology']
+        return ['linkset', 'ontology', '__ontobdc__', '.__ontobdc__']

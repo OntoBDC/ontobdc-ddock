@@ -1,6 +1,10 @@
 {% extends "unfold/layouts/base.html" %}
 {% load i18n %}
 
+{% block extrahead %}
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+{% endblock %}
+
 {% block content %}
 <div class="p-4 md:p-8 mt-4 max-w-[1600px] mx-auto">
     <!-- Header -->
@@ -165,6 +169,14 @@
                             <div class="text-xs text-gray-500 llm-dark-text-body">{% trans "container.actions.clean_desc" %}</div>
                         </div>
                     </button>
+                    
+                    <a href="" class="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors text-left card-dark-border group">
+                        <span class="material-symbols-outlined text-gray-400 group-hover:text-primary-600">health_and_safety</span>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 llm-dark-text">Check Storage</div>
+                            <div class="text-xs text-gray-500 llm-dark-text-body">Run storage health checks</div>
+                        </div>
+                    </a>
                 </div>
             </div>
 
@@ -278,36 +290,27 @@
                         <span class="material-symbols-outlined text-gray-500 dark:text-gray-400">terminal</span>
                         <h3 class="font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs">{% trans "container.debug.title" %}</h3>
                     </div>
-                    <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        {% trans "container.debug.live" %}
+                    <span id="log-status" class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                        {% if last_level == 'READY' %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.ready" %}</span>
+                        {% elif last_level == 'FAIL' %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.down" %}</span>
+                        {% elif last_level %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.processing" %}</span>
+                        {% else %}
+                            <span id="log-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span id="log-status-text">{% trans "container.debug.down" %}</span>
+                        {% endif %}
                     </span>
                 </div>
-                
+
                 <!-- Log Area -->
-                <div class="flex-1 p-4 overflow-y-auto bg-gray-900 text-gray-300 font-mono text-xs space-y-2 dark:bg-black">
-                    <!-- Log Entries (Mock) -->
-                    <div class="flex gap-3">
-                        <span class="text-gray-500 whitespace-nowrap">2026-06-16 14:32:01</span>
-                        <span class="text-blue-400">[INFO]</span>
-                        <span class="text-gray-200">{% trans "container.debug.log1" %}</span>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="text-gray-500 whitespace-nowrap">2026-06-16 14:32:15</span>
-                        <span class="text-green-400">[SUCCESS]</span>
-                        <span class="text-gray-200">{% trans "container.debug.log2" %}</span>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="text-gray-500 whitespace-nowrap">2026-06-16 14:33:42</span>
-                        <span class="text-yellow-400">[WARN]</span>
-                        <span class="text-yellow-100">{% trans "container.debug.log3" %}</span>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="text-gray-500 whitespace-nowrap">2026-06-16 14:35:10</span>
-                        <span class="text-blue-400">[INFO]</span>
-                        <span class="text-gray-200">{% trans "container.debug.log4" %}</span>
-                    </div>
+                <div id="log-area" class="flex-1 p-4 overflow-y-auto bg-gray-900 text-gray-300 font-mono text-xs space-y-2 dark:bg-black">
                 </div>
+                {% include "admin/data/container/log_partial.html" with container=container last_line=last_line last_level=last_level finished=False %}
             </div>
         </div>
     </div>
