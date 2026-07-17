@@ -1,4 +1,4 @@
-from ontobdc.cli.domain.resource.command import CheckFailCommandResponse, ExceptionCommandResponse
+from ontobdc.cli.domain.response.command import CheckFailCommandResponse, ExceptionCommandResponse
 
 from django.contrib import admin
 from django.contrib.auth.models import Group as DefaultGroup

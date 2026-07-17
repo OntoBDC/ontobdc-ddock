@@ -10,7 +10,7 @@ from ontobdc.shared.domain.port.logger import LogLevelPort
 from ontobdc.cli.domain.port.command import CliCommandPort
 from ontobdc.cli.adapter.command import CliCommandRunAdapter
 from ontobdc.shared.domain.port.logger import LoggerAwarePort
-from ontobdc.cli.domain.resource.command import CommandResponse, ExceptionCommandResponse
+from ontobdc.cli.domain.response.command import CommandResponse, ExceptionCommandResponse
 
 
 class GatewayContainerLoader:
