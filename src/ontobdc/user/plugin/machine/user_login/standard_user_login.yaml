@@ -1,0 +1,65 @@
+statechart:
+  name: StandardUserLogin
+  description: "Statechart for logging the person in."
+
+  root state:
+    name: standard_user_login
+    initial: undefined
+
+    states:
+      - name: undefined
+        label:
+          en: "Undefined"
+          pt-br: "Indefinido"
+        description:
+          en: "Initial state before anything was prepared."
+          pt-br: "Estado inicial antes de qualquer preparação."
+        transitions:
+          - target: server_url_identified
+            guard: handler.can_transit_to(to_state = UserLoginStatePort.SERVER_URL_IDENTIFIED)
+            action: handler.perform_state_transition(to_state = UserLoginStatePort.SERVER_URL_IDENTIFIED)
+
+      - name: server_url_identified
+        label:
+          en: "Server URL Identified"
+          pt-br: "URL do Servidor Identificada"
+        description:
+          en: "The URL of the server to log in to is known."
+          pt-br: "A URL do servidor em que se faz o login é conhecida."
+        transitions:
+          - target: access_token_received
+            guard: handler.can_transit_to(to_state = UserLoginStatePort.ACCESS_TOKEN_RECEIVED)
+            action: handler.perform_state_transition(to_state = UserLoginStatePort.ACCESS_TOKEN_RECEIVED)
+
+      - name: access_token_received
+        label:
+          en: "Access Token Received"
+          pt-br: "Token de Acesso Recebido"
+        description:
+          en: "The person logged in on the server and the application holds the access token."
+          pt-br: "A pessoa fez o login no servidor e o aplicativo tem o token de acesso."
+        transitions:
+          - target: user_profile_received
+            guard: handler.can_transit_to(to_state = UserLoginStatePort.USER_PROFILE_RECEIVED)
+            action: handler.perform_state_transition(to_state = UserLoginStatePort.USER_PROFILE_RECEIVED)
+
+      - name: user_profile_received
+        label:
+          en: "User Profile Received"
+          pt-br: "Perfil do Usuário Recebido"
+        description:
+          en: "The profile of the person was read and the login succeeded."
+          pt-br: "O perfil da pessoa foi lido e o login foi efetuado."
+        transitions:
+          - target: access_token_remembered
+            guard: handler.can_transit_to(to_state = UserLoginStatePort.ACCESS_TOKEN_REMEMBERED)
+            action: handler.perform_state_transition(to_state = UserLoginStatePort.ACCESS_TOKEN_REMEMBERED)
+
+      - name: access_token_remembered
+        label:
+          en: "Access Token Remembered"
+          pt-br: "Token de Acesso Memorizado"
+        description:
+          en: "The access token was kept for the server, for as long as it is valid."
+          pt-br: "O token de acesso foi guardado para o servidor, enquanto for válido."
+        type: final

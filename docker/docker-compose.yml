@@ -1,0 +1,22 @@
+services:
+  obdc-ddock:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: obdc-ddock
+    ports:
+      - "${DDOCK_PORT:-5173}:5173"
+    volumes:
+      - ../src:/app
+      - /app/node_modules
+      # The sources of the Python packages the browser runs are not mounted here:
+      # without them the app uses the wheels pinned in src/python/manifest.json.
+      # To build them from local checkouts, add docker/docker-compose.sources.yml.
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      # The first start vendors the Python runtime (~320 MB download) before Vite listens.
+      start_period: 15m

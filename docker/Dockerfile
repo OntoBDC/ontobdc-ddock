@@ -1,29 +1,22 @@
-FROM python:3.12-slim
+FROM node:22-alpine
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies (including gettext for translations and build tools)
-RUN apt-get update && apt-get install -y gettext gcc g++ make && rm -rf /var/lib/apt/lists/*
+# Python and the tools that build the wheels of the project's own packages
+# (brasidatacenter, ontobdc) from their source every time the app starts.
+RUN apk add --no-cache python3 py3-pip \
+    && python3 -m venv /opt/wheel-build \
+    && /opt/wheel-build/bin/pip install --no-cache-dir build setuptools wheel "hatchling>=1.27"
+ENV PATH="/opt/wheel-build/bin:${PATH}"
 
-# Upgrade pip and install dependencies
-COPY src/requirements.txt /app/requirements.txt
-RUN pip install --upgrade pip && \
-    pip install django django-unfold && \
-    if [ -f requirements.txt ]; then \
-        pip install -r requirements.txt && \
-        pip list --outdated | grep -v "^\-e" | tail -n +3 | cut -d' ' -f1 | xargs -n1 pip install -U; \
-    fi
+# The lockfile pins every dependency to the versions the tests ran with.
+COPY src/package.json src/package-lock.json ./
 
-# Copy the entrypoint script
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN npm ci --no-audit --no-fund
 
-COPY ssh/* /root/.ssh/
 
-# Run the entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+COPY src/ ./
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

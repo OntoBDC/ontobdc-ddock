@@ -1,0 +1,65 @@
+statechart:
+  name: StandardOpenContainer
+  description: "Statechart for opening a container of the workspace from the browser."
+
+  root state:
+    name: standard_open_container
+    initial: undefined
+
+    states:
+      - name: undefined
+        label:
+          en: "Undefined"
+          pt-br: "Indefinido"
+        description:
+          en: "Initial state before anything was prepared."
+          pt-br: "Estado inicial antes de qualquer preparação."
+        transitions:
+          - target: storage_container_defined
+            guard: handler.can_transit_to(to_state = OpenContainerStatePort.STORAGE_CONTAINER_DEFINED)
+            action: handler.perform_state_transition(to_state = OpenContainerStatePort.STORAGE_CONTAINER_DEFINED)
+
+      - name: storage_container_defined
+        label:
+          en: "Storage Container Defined"
+          pt-br: "Contêiner do Armazenamento Definido"
+        description:
+          en: "The person picked the folder of the container."
+          pt-br: "A pessoa escolheu a pasta do contêiner."
+        transitions:
+          - target: storage_root_defined_from_container
+            guard: handler.can_transit_to(to_state = OpenContainerStatePort.STORAGE_ROOT_DEFINED_FROM_CONTAINER)
+            action: handler.perform_state_transition(to_state = OpenContainerStatePort.STORAGE_ROOT_DEFINED_FROM_CONTAINER)
+
+      - name: storage_root_defined_from_container
+        label:
+          en: "Storage Root Defined From Container"
+          pt-br: "Raiz do Armazenamento Definida a partir do Contêiner"
+        description:
+          en: "The parent of the folder of the container is the working folder, and has a root of the workspace."
+          pt-br: "O diretório pai da pasta do contêiner é a pasta de trabalho e tem uma raiz do espaço de trabalho."
+        transitions:
+          - target: workspace_container_created
+            guard: handler.can_transit_to(to_state = OpenContainerStatePort.WORKSPACE_CONTAINER_CREATED)
+            action: handler.perform_state_transition(to_state = OpenContainerStatePort.WORKSPACE_CONTAINER_CREATED)
+
+      - name: workspace_container_created
+        label:
+          en: "Workspace Container Created"
+          pt-br: "Contêiner do Espaço de Trabalho Criado"
+        description:
+          en: "The folder of the container is in the listing of the workspace."
+          pt-br: "A pasta do contêiner está na listagem do espaço de trabalho."
+        transitions:
+          - target: workspace_container_healthy
+            guard: handler.can_transit_to(to_state = OpenContainerStatePort.WORKSPACE_CONTAINER_HEALTHY)
+            action: handler.perform_state_transition(to_state = OpenContainerStatePort.WORKSPACE_CONTAINER_HEALTHY)
+
+      - name: workspace_container_healthy
+        label:
+          en: "Workspace Container Healthy"
+          pt-br: "Contêiner do Espaço de Trabalho Saudável"
+        description:
+          en: "The container was refreshed to match the files it holds."
+          pt-br: "O contêiner foi atualizado para refletir os arquivos que contém."
+        type: final

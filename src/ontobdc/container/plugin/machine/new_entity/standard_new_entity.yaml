@@ -1,0 +1,65 @@
+statechart:
+  name: StandardNewEntity
+  description: "Statechart for starting a new entity of any type: the dataset that holds it, its facade and the tab to fill it in."
+
+  root state:
+    name: standard_new_entity
+    initial: undefined
+
+    states:
+      - name: undefined
+        label:
+          en: "Undefined"
+          pt-br: "Indefinido"
+        description:
+          en: "Initial state before anything was prepared."
+          pt-br: "Estado inicial antes de qualquer preparação."
+        transitions:
+          - target: entity_type_resolved
+            guard: handler.can_transit_to(to_state = NewEntityStatePort.ENTITY_TYPE_RESOLVED)
+            action: handler.perform_state_transition(to_state = NewEntityStatePort.ENTITY_TYPE_RESOLVED)
+
+      - name: entity_type_resolved
+        label:
+          en: "Entity Type Resolved"
+          pt-br: "Tipo da Entidade Resolvido"
+        description:
+          en: "The type of the entity to create is known, from the request or from the group it names."
+          pt-br: "O tipo da entidade a criar é conhecido, pelo pedido ou pelo grupo que ele nomeia."
+        transitions:
+          - target: entity_dataset_ready
+            guard: handler.can_transit_to(to_state = NewEntityStatePort.ENTITY_DATASET_READY)
+            action: handler.perform_state_transition(to_state = NewEntityStatePort.ENTITY_DATASET_READY)
+
+      - name: entity_dataset_ready
+        label:
+          en: "Entity Dataset Ready"
+          pt-br: "Dataset da Entidade Pronto"
+        description:
+          en: "The container has a dataset that holds the entity; one is created, empty, when it had none."
+          pt-br: "O contêiner tem um dataset que contém a entidade; se não tinha, um é criado, vazio."
+        transitions:
+          - target: entity_new_facade_found
+            guard: handler.can_transit_to(to_state = NewEntityStatePort.ENTITY_NEW_FACADE_FOUND)
+            action: handler.perform_state_transition(to_state = NewEntityStatePort.ENTITY_NEW_FACADE_FOUND)
+
+      - name: entity_new_facade_found
+        label:
+          en: "Entity New Facade Found"
+          pt-br: "Fachada da Nova Entidade Encontrada"
+        description:
+          en: "The facade of the entity was read and allows creating instances; the form starts with the values of the request."
+          pt-br: "A fachada da entidade foi lida e permite criar instâncias; o formulário começa com os valores do pedido."
+        transitions:
+          - target: entity_new_tab_opened
+            guard: handler.can_transit_to(to_state = NewEntityStatePort.ENTITY_NEW_TAB_OPENED)
+            action: handler.perform_state_transition(to_state = NewEntityStatePort.ENTITY_NEW_TAB_OPENED)
+
+      - name: entity_new_tab_opened
+        label:
+          en: "Entity New Tab Opened"
+          pt-br: "Aba da Nova Entidade Aberta"
+        description:
+          en: "The tab where the new entity is filled in was asked of the surface."
+          pt-br: "A aba onde a nova entidade é preenchida foi pedida à superfície."
+        type: final

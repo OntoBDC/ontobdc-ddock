@@ -1,0 +1,12 @@
+# The addresses the application talks to. Read through the config adapter.
+server:
+  # The server of Brasidata the person logs in to.
+  url: https://api.brasidata.com
+  # The page where the person logs in; it sends the authorization code back to the application.
+  login: https://api.brasidata.com/login
+  # Where the authorization code is exchanged for the access token.
+  token: https://api.brasidata.com/token
+  # Where the profile of the person who logged in is read, with the access token.
+  profile: https://api.brasidata.com/profile
+  # The containers of the server; the list is asked with the parameter list=true.
+  containers: https://api.brasidata.com/cmd/ontobdc/container

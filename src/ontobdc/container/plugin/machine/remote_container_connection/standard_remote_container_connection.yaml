@@ -1,0 +1,29 @@
+statechart:
+  name: StandardRemoteContainerConnection
+  description: "Statechart for connecting to a remote databim.tech container from the browser."
+
+  root state:
+    name: standard_remote_container_connection
+    initial: undefined
+
+    states:
+      - name: undefined
+        label:
+          en: "Undefined"
+          pt-br: "Indefinido"
+        description:
+          en: "Initial state before anything was prepared."
+          pt-br: "Estado inicial antes de qualquer preparação."
+        transitions:
+          - target: remote_container_inspected
+            guard: handler.can_transit_to(to_state = RemoteContainerConnectionStatePort.REMOTE_CONTAINER_INSPECTED)
+            action: handler.perform_state_transition(to_state = RemoteContainerConnectionStatePort.REMOTE_CONTAINER_INSPECTED)
+
+      - name: remote_container_inspected
+        label:
+          en: "Remote Container Inspected"
+          pt-br: "Contêiner Remoto Inspecionado"
+        description:
+          en: "The server inspected the container the person chose."
+          pt-br: "O servidor inspecionou o contêiner que a pessoa escolheu."
+        type: final
