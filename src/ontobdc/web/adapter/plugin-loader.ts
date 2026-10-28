@@ -12,8 +12,10 @@ type PluginImports = Record<string, () => Promise<PanelPlugin>>;
 const pluginImports = import.meta.glob<PanelPlugin>([
   '../plugin/**/*.ts',
   '../../*/plugin/panel/*.ts',
+  '@/addon/*/plugin/panel/*.ts',
   '!../plugin/**/*.d.ts',
   '!../../*/plugin/panel/*.d.ts',
+  '!@/addon/*/plugin/panel/*.d.ts',
 ]);
 
 /**

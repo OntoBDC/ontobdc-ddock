@@ -1,11 +1,11 @@
 import { applyTranslations, onLocaleChange } from '@/ontobdc/shared/plugin/i18n';
+import { Config } from '@/ontobdc/shared/adapter/config';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { createAboutButton } from '@/ontobdc/shared/adapter/about-button';
 import { createTerminalPrompt } from '@/ontobdc/shared/adapter/terminal-prompt';
 import { createLanguageSwitcher } from '@/ontobdc/shared/adapter/language';
 import { createThemeSwitcher } from '@/ontobdc/shared/adapter/theme';
 import { mountPythonStatus } from '@/ontobdc/web/adapter/python-status';
-import systemLogo from '@/asset/logo-system.png';
 import '@/ontobdc/web/plugin/asset/ad-slot.css';
 
 let disposePythonStatus: (() => void) | undefined;
@@ -20,10 +20,13 @@ export function renderShell(app: HTMLElement): void {
   removeViewportListener?.();
   removeLocaleListener?.();
   disposePythonStatus?.();
+  const brand = Config.brand();
+  const logo = Config.logo();
+  document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.setAttribute('href', logo);
   app.innerHTML = `
     <div class="shell">
       <header class="titlebar">
-        <span class="brand"><img class="brand-logo" src="${systemLogo}" alt="" /><span>Onto<span class="brand-accent">BDC</span></span></span>
+        <span class="brand"><img class="brand-logo" src="${logo}" alt="" /><span>${brand.plain}<span class="brand-accent" style="color: ${brand.color}">${brand.colored}</span></span></span>
         <span class="container" data-i18n="titlebar.noWorkspace"></span>
       </header>
       <div class="workspace">

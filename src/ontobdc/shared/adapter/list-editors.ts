@@ -5,6 +5,8 @@ export type ListEditorHandle = {
   add(item: string): void;
   /** The items are documents of the container. */
   documents?: boolean;
+  /** The items it holds now, as the person has them: what is not saved yet included. */
+  items?(): string[];
 };
 
 const editors = new Map<string, ListEditorHandle>();

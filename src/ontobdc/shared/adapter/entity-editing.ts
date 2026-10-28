@@ -55,7 +55,7 @@ export async function startEditing(id: string): Promise<void> {
       ? Object.fromEntries(Object.entries(JSON.parse(term.dataset.optionLabels) as Record<string, Record<string, string>>)
         .flatMap(([option, names]) => { const shown = nameIn(names, getLocale()); return shown ? [[option, shown]] : []; }))
       : undefined;
-    const editor = (await editorFor(term.dataset.datatype, options, term.dataset.multivalued === 'true'))({
+    const editor = (await editorFor(term.dataset.datatype, options, term.dataset.multivalued === 'true', term.dataset.documents === 'true'))({
       value: initial,
       datatype: term.dataset.datatype ?? '',
       label: term.textContent ?? name,
@@ -83,8 +83,8 @@ export async function startEditing(id: string): Promise<void> {
     save.disabled = Object.keys(changes()).length === 0 || !valid();
   };
   const titles = (): void => {
-    save.title = translate('annotations.menu.save');
-    discard.title = translate('annotations.menu.discard');
+    save.title = translate('entity.action.save');
+    discard.title = translate('entity.action.discard');
   };
 
   const onSave = (): void => {
@@ -113,11 +113,20 @@ export async function startEditing(id: string): Promise<void> {
   };
   /** Puts the fields back as they were drawn. */
   const restore = (): void => {
+    // What was shown before is not what the entity is now when an editor says someone else changed it.
+    const stale = [...editors.values()].some(({ editor }) => editor.stale?.() === true);
     for (const [detail, nodes] of original) detail.replaceChildren(...nodes);
     finish();
+    if (stale) eventBus.publish('presentation.entity.refresh.requested', SOURCE, { id });
   };
 
-  for (const { editor } of editors.values()) editor.onChange(refresh);
+  for (const { editor } of editors.values()) {
+    editor.onChange(() => {
+      refresh();
+      // What the person chose is saved at once, with the rest that they changed: the same request as Save.
+      if (editor.commits && !save.disabled) onSave();
+    });
+  }
   save.addEventListener('click', onSave);
   discard.addEventListener('click', onDiscard);
   edit.disabled = true;

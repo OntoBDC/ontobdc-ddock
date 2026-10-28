@@ -1,5 +1,6 @@
 import { eventBus, type AppEvent } from '@/ontobdc/shared/adapter/event-bus';
 import { quoted, requestCommand } from '@/ontobdc/shared/adapter/command-request';
+import { SUPERSEDED } from '@/ontobdc/shared/adapter/python';
 import { entityGroupsOf } from '@/ontobdc/shared/adapter/container-format';
 import type { AppEventMap } from '@/ontobdc/shared/domain/model/event';
 import type { ListenerMetadata } from '@/ontobdc/shared/domain/model/listener';
@@ -11,7 +12,7 @@ type RefreshRequested = AppEventMap[typeof REFRESH_REQUESTED];
 
 /** Reads one entity of the container, and only that one, and publishes it. Shared by what changes an entity. */
 export async function publishEntity(id: string, source: string): Promise<void> {
-  const result = await requestCommand(`ontobdc container --entity ${quoted(id)} --read`, source);
+  const result = await requestCommand(`ontobdc container --entity ${quoted(id)} --inspect`, source);
   const groups = entityGroupsOf(result.stdout);
   if (!groups) throw new Error('The command did not answer with the entity.');
   eventBus.publish('presentation.container.entity.found', source, { groups });
@@ -39,7 +40,7 @@ export class OnEntityRefreshRequested {
     this.request = event.payload as RefreshRequested | undefined;
   }
 
-  /** Runs `ontobdc container --entity <id> --read` and publishes the entity it answers, or why it could not. */
+  /** Runs `ontobdc container --entity <id> --inspect` and publishes the entity it answers, or why it could not. */
   async run(): Promise<void> {
     const id = this.request?.id;
     if (!id) throw new Error('The refresh request carries no entity id.');
@@ -47,6 +48,8 @@ export class OnEntityRefreshRequested {
     try {
       await publishEntity(id, SOURCE);
     } catch (error) {
+      // A newer read of the same entity is queued in its place, and it publishes the entity.
+      if (error instanceof Error && error.message === SUPERSEDED) return;
       eventBus.publish('presentation.entity.refresh.failed', SOURCE, { id, message: error instanceof Error ? error.message : String(error) });
     }
   }

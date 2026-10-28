@@ -47,8 +47,20 @@ export function markPending(panel: HTMLElement, fields: ReadonlyMap<string, 'tex
   for (const term of panel.querySelectorAll<HTMLElement>('.entity-fields dt[data-field]')) {
     const kind = fields.get(term.dataset.field ?? '');
     const detail = term.nextElementSibling as HTMLElement | null;
-    if (kind && detail && !detail.classList.contains('entity-empty')) detail.dataset.pending = kind;
+    if (kind && detail && !detail.classList.contains('entity-empty')) {
+      detail.dataset.pending = kind;
+      expire(detail);
+    }
   }
+}
+
+/** The longest a field waits behind a skeleton, whatever became of what it waits for: a skeleton is never left for good. */
+const PENDING_LIMIT_MS = 30000;
+const expiries = new WeakMap<HTMLElement, number>();
+
+function expire(detail: HTMLElement): void {
+  window.clearTimeout(expiries.get(detail));
+  expiries.set(detail, window.setTimeout(() => { delete detail.dataset.pending; }, PENDING_LIMIT_MS));
 }
 
 /** Takes the skeleton off the fields named, or off every field when none is named. */
@@ -56,7 +68,10 @@ export function clearPending(panel: HTMLElement, identifiers?: Iterable<string>)
   const named = identifiers === undefined ? undefined : new Set(identifiers);
   for (const term of panel.querySelectorAll<HTMLElement>('.entity-fields dt[data-field]')) {
     if (named && !named.has(term.dataset.field ?? '')) continue;
-    delete (term.nextElementSibling as HTMLElement | null)?.dataset.pending;
+    const detail = term.nextElementSibling as HTMLElement | null;
+    if (!detail) continue;
+    delete detail.dataset.pending;
+    window.clearTimeout(expiries.get(detail));
   }
 }
 
@@ -96,6 +111,8 @@ export async function keepApplied(
     // A tab that is not the active one is out of the page (Dockview takes it out), and comes back as it is:
     // it is applied all the same, and only a tab that was disposed is let go.
     if (panel.dataset.disposed === 'true') return stop();
+    // While the entity is edited its fields are what the person is changing: what was applied is not put over them, and comes back when the editing ends and the tab is read again.
+    if (panel.dataset.mode === 'editing') return;
     apply(locale);
   };
   const unsubscribers = [

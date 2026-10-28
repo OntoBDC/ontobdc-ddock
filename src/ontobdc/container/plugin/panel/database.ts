@@ -154,12 +154,12 @@ export default function makeDatabase(): Mountable {
       const order = sortOrder.get(group.id);
       const sort = document.createElement('button');
       sort.type = 'button';
-      sort.className = 'annotations-sort';
+      sort.className = 'group-sort';
       sort.dataset.group = group.id;
       sort.dataset.order = order ?? 'none';
       sort.hidden = group.id !== openGroup;
       sort.textContent = order === 'asc' ? 'A→Z' : order === 'desc' ? 'Z→A' : 'A↕Z';
-      sort.title = translate(order === 'asc' ? 'annotations.sort.desc' : 'annotations.sort.asc');
+      sort.title = translate(order === 'asc' ? 'group.sort.desc' : 'group.sort.asc');
       sort.setAttribute('aria-label', sort.title);
       sort.addEventListener('click', (event) => {
         event.preventDefault();
@@ -226,7 +226,7 @@ export default function makeDatabase(): Mountable {
       openGroup = payload.group;
       moreMenu.close();
       for (const more of root.querySelectorAll<HTMLButtonElement>('.tree-group-more')) more.hidden = more.dataset.group !== payload.group;
-      for (const sort of root.querySelectorAll<HTMLButtonElement>('.annotations-sort')) sort.hidden = sort.dataset.group !== payload.group;
+      for (const sort of root.querySelectorAll<HTMLButtonElement>('.group-sort')) sort.hidden = sort.dataset.group !== payload.group;
     }),
     eventBus.subscribe('presentation.container.entities.found', ({ payload }) => {
       groups = Array.isArray(payload?.groups) ? payload.groups : [];

@@ -50,13 +50,16 @@ async function startPython(): Promise<PyodideAPI> {
 /** Capture each command separately, restoring interpreter state even on failure. */
 const RUN_CLI = `
 import os, sys, json, io, contextlib
-from ontobdc.cli import main
 previous_cwd, previous_argv = os.getcwd(), sys.argv
 output, errors = io.StringIO(), io.StringIO()
 exit_code = 0
 try:
     os.chdir(CWD)
     sys.argv = list(ARGV)
+    if sys.argv[0] == 'infobim':
+        from infobim.cli import main
+    else:
+        from ontobdc.cli import main
     with contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
         try:
             main()

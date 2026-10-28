@@ -23,7 +23,8 @@ export class FileMetadataExtractedCapability {
     const metadata = {
       path: item,
       name: file.name,
-      extension: file.name.split('.').pop()?.toLowerCase() ?? '',
+      // The text after the last dot; a name with no dot, or only a leading one (`.env`), has no extension.
+      extension: file.name.lastIndexOf('.') > 0 ? file.name.slice(file.name.lastIndexOf('.') + 1).toLowerCase() : '',
       size: file.size,
       lastModified: file.lastModified,
       type: file.type,

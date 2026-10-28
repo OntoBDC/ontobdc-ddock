@@ -38,6 +38,10 @@ export type ExplorerMenuAction = { group: ExplorerGroupId; action: string; item:
 type ExplorerEvents = {
   /** A file was double-clicked, or opened from its menu; item contains its path in the container. */
   'presentation.explorer.file.activated': { item: string };
+  /** A file was activated and no capability can open it; `extension` is the one of the file, in lower case, and empty when it has none. */
+  'presentation.explorer.file.unsupported': { item: string; extension: string };
+  /** The person asked to read a file of the container again, such as one that was changed by a command; item is its path. The tabs that show it draw it again. */
+  'presentation.explorer.file.reload.requested': { item: string };
   /** An entry of the menu of an item of any group was chosen. */
   'presentation.explorer.activated': ExplorerMenuAction;
   /** The days saved in the container were (re)found; the HISTORY calendars highlight them. */
@@ -223,10 +227,6 @@ type CoreEvents = {
   'presentation.main.docx.closed': { item: string };
   /** The tab of an HTML file was closed; item is the path of the file in the container. */
   'presentation.main.html.closed': { item: string };
-  /** The tab of a DXF drawing was closed; item is the path of the file in the container. */
-  'presentation.main.dxf.closed': { item: string };
-  /** The tab of a DWG drawing was closed; item is the path of the file in the container. */
-  'presentation.main.dwg.closed': { item: string };
   /** The tab of an entity of the database was closed; id is the global id of the entity. */
   'presentation.main.entity.closed': { id: string };
   /** The entity tab's initial visual is rendered and attached to the document. */
@@ -252,6 +252,8 @@ type CoreEvents = {
   /** The person asked to remove an item from a list field. owner is the entity being edited (its global id) or `new:<group>` for the tab of a new entity; field is the identifier of the field; item the value to remove. */
   'presentation.entity.list.item.remove.requested': { owner: string; field: string; item: string };
   /** The person asked to add an item to a list field. documents says its values are documents of the container, chosen from its files. */
+  /** The person asked to draw the geometries of a field of an entity; the one that knows the entity answers. */
+  'presentation.entity.geometry.draw.requested': { owner: string; field: string };
   'presentation.entity.list.item.add.requested': { owner: string; field: string; documents: boolean };
   /** The person chose the item to add to a list field. */
   'presentation.entity.list.item.chosen': { owner: string; field: string; item: string };
@@ -266,7 +268,8 @@ type CoreEvents = {
   /** The person asked to save: `changes` has the fields they changed, by name, with their new values. */
   'presentation.entity.save.requested': { id: string; changes: Record<string, string> };
   /** The changes were saved; the edit is over. */
-  'presentation.entity.saved': { id: string };
+  /** The changes of an entity were saved; `changed` names the fields that were. */
+  'presentation.entity.saved': { id: string; changed?: string[] };
   'presentation.entity.save.failed': { id: string; message: string };
   'presentation.entity.delete.requested': { id: string };
   /** The person asks to read one entity again, from its tab; the id is the entity of the tab. */

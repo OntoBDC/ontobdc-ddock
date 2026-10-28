@@ -45,9 +45,9 @@ type Action = 'comment' | 'edit' | 'save' | 'discard' | 'delete' | 'refresh';
 const ACTIONS: Array<{ action: Action; icon: string; label: MessageKey }> = [
   { action: 'comment', icon: '<path d="M2.5 3h11v7.5H8L5 13.5v-3H2.5z"/>', label: 'comment.button' },
   { action: 'edit', icon: '<path d="M10.5 2.5l3 3-7.5 7.5H3v-3z"/><path d="M9 4l3 3"/>', label: 'entity.action.edit' },
-  { action: 'save', icon: '<path d="M3 2h8l2 2v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M5 2v4h5V2M5 14v-4h6v4"/>', label: 'annotations.menu.save' },
-  { action: 'discard', icon: '<path d="M3 6h6a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/>', label: 'annotations.menu.discard' },
-  { action: 'delete', icon: '<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"/><path d="M6.5 6.5v5M9.5 6.5v5"/>', label: 'annotations.menu.delete' },
+  { action: 'save', icon: '<path d="M3 2h8l2 2v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M5 2v4h5V2M5 14v-4h6v4"/>', label: 'entity.action.save' },
+  { action: 'discard', icon: '<path d="M3 6h6a3.5 3.5 0 0 1 0 7H6"/><path d="M5.5 3.5 3 6l2.5 2.5"/>', label: 'entity.action.discard' },
+  { action: 'delete', icon: '<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"/><path d="M6.5 6.5v5M9.5 6.5v5"/>', label: 'entity.action.delete' },
   { action: 'refresh', icon: '<path d="M13 8a5 5 0 1 1-1.5-3.5"/><path d="M13 2.5v3h-3"/>', label: 'entity.action.refresh' },
 ];
 
@@ -73,11 +73,11 @@ export default function makeEntity({ id }: { id: string }): Mountable {
   root.tabIndex = -1; // focusable, so a click in the tab activates it
 
   const actions = document.createElement('div');
-  actions.className = 'annotation-actions';
+  actions.className = 'entity-actions';
   const buttons = ACTIONS.map(({ action, icon, label }) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `annotation-action ${action}`;
+    button.className = `entity-action ${action}`;
     button.dataset.action = action;
     // Reading the entities again changes nothing in the tab, so it is there from the start.
     button.disabled = action !== 'refresh';
@@ -96,7 +96,11 @@ export default function makeEntity({ id }: { id: string }): Mountable {
     }
 
     // While the entity is being edited the fields are what the person is typing: drawing them again would lose it.
-    if (root.dataset.mode === 'editing') return;
+    // The skeletons the refresh put on its fields come off with the answer, which is not drawn.
+    if (root.dataset.mode === 'editing') {
+      clearPending(root);
+      return;
+    }
 
     const repository = EntityRepository.getInstance();
     const found = repository.find(globalId);
@@ -196,7 +200,8 @@ export default function makeEntity({ id }: { id: string }): Mountable {
     // The lists could not be read: what is not there is missing.
     eventBus.subscribe('presentation.container.entities.failed', () => { readFailed = true; render(); }),
     eventBus.subscribe('presentation.entity.refresh.requested', ({ payload }) => {
-      if (payload?.id !== globalId || root.dataset.state !== 'ready') return;
+      // While it is edited the fields are not drawn again, so no skeleton is put on them: nothing would take it off.
+      if (payload?.id !== globalId || root.dataset.state !== 'ready' || root.dataset.mode === 'editing') return;
       const found = EntityRepository.getInstance().find(globalId);
       if (found) markPending(root, likelyLazy(found.item));
     }),

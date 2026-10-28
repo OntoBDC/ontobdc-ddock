@@ -165,7 +165,7 @@ export default function makeProductivity(): Mountable {
           id: 'new',
           label: translate('database.menu.new'),
           icon: NEW_ICON,
-          disabledReason: writable() ? undefined : translate('annotations.menu.readOnly'),
+          disabledReason: writable() ? undefined : translate('container.readOnly'),
           run: () => eventBus.publish('presentation.entity.new.requested', SOURCE, { entityType: DAY_ENTITY_TYPE, values: { date: todayAsDate() } }),
         },
       ]);
@@ -245,10 +245,10 @@ export default function makeProductivity(): Mountable {
       const order = sortOrder.get(group.id);
       const sort = document.createElement('button');
       sort.type = 'button';
-      sort.className = 'annotations-sort';
+      sort.className = 'group-sort';
       sort.dataset.order = order ?? 'none';
       sort.textContent = order === 'asc' ? 'A→Z' : order === 'desc' ? 'Z→A' : 'A↕Z';
-      sort.title = translate(order === 'asc' ? 'annotations.sort.desc' : 'annotations.sort.asc');
+      sort.title = translate(order === 'asc' ? 'group.sort.desc' : 'group.sort.asc');
       sort.setAttribute('aria-label', sort.title);
       sort.addEventListener('click', (event) => {
         event.preventDefault();
@@ -268,7 +268,7 @@ export default function makeProductivity(): Mountable {
         event.preventDefault();
         event.stopPropagation();
         if (moreMenu.isOpen()) { moreMenu.close(); return; }
-        const blocker = !writable() ? translate('annotations.menu.readOnly') : undefined;
+        const blocker = !writable() ? translate('container.readOnly') : undefined;
         moreMenu.show(more, [
           {
             id: 'new',

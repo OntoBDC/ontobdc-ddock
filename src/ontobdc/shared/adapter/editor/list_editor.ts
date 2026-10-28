@@ -62,6 +62,7 @@ export default function listEditor({ value, label, documents = false, owner = ''
   registerListEditor(owner, field, {
     element: root,
     documents,
+    items: () => [...items],
     remove: (item) => {
       const index = items.indexOf(item);
       if (index < 0) return;

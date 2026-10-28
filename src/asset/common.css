@@ -171,11 +171,6 @@
   .tree-panel ul { margin: 0; padding: 0; list-style: none; }
   .tree-panel ul[hidden] { display: none; }
   .tree-panel[hidden] { display: none; }
-  .annotations-list { margin: 0; padding: 0; list-style: none; }
-  .annotations-panel details { position: relative; }
-  .annotations-group-body { position: absolute; inset: 27px 0 0; max-height: none; }
-  .annotations-panel .tree-row:hover > .tree-more, .entities-panel .tree-row:hover > .tree-more { display: inline-flex; }
-  .annotations-group-body .tree-empty { padding-left: 26px; }
   /* The calendars of the HISTORY group: one month after the other, the saved days highlighted. */
   .history-calendars { display: flex; flex-direction: column; gap: 12px; padding: 6px 10px 12px 26px; }
   .history-month-title { margin: 0 0 12px; color: var(--text-secondary); font-size: 11px; font-weight: 600; }
@@ -405,27 +400,6 @@
     overflow-wrap: anywhere;
   }
 
-  .drawing-viewer-status { pointer-events: none; }
-  .drawing-viewer-status[hidden], .drawing-layers[hidden] { display: none; }
-
-  .drawing-viewer { position: relative; overflow: hidden; background: var(--surface); outline: none; }
-  /* dxf-viewer sets position: relative on this container itself, so it is sized by width/height, not insets. */
-  .drawing-viewer-canvas { position: relative; width: 100%; height: 100%; }
-  .drawing-view-host { width: 100%; height: 100%; }
-  .drawing-viewer-canvas canvas { display: block; outline: none; }
-  .drawing-view-stack, .drawing-view-layer, .drawing-view-input { position: absolute; inset: 0; }
-  .drawing-view-input { cursor: grab; touch-action: none; }
-  .drawing-view-input:active { cursor: grabbing; }
-  .drawing-viewer-status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 24px; color: var(--text-secondary); font-size: 13px; text-align: center; }
-  .drawing-viewer[data-state="error"] .drawing-viewer-status { color: var(--text-error); }
-  .drawing-layers { position: absolute; top: 8px; right: 8px; max-height: calc(100% - 16px); overflow: auto; min-width: 140px; padding: 6px 8px; background: var(--surface-overlay); border: 1px solid var(--border-input); border-radius: 4px; font-size: 11px; color: var(--text); }
-  .drawing-layers-title { margin-bottom: 4px; color: var(--text-muted); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 10px; }
-  .drawing-layers ul { margin: 0; padding: 0; list-style: none; }
-  .drawing-layers-file { margin: 6px 0 2px; color: var(--text); font-weight: 700; }
-  .drawing-layer { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
-  .drawing-layer input { margin: 0; }
-  .drawing-layer-swatch { width: 10px; height: 10px; border-radius: 2px; box-shadow: 0 0 0 1px var(--swatch-border); }
-
   /* Image and PDF tabs: one file, as the browser renders it. */
   .document-viewer { position: relative; overflow: hidden; background: var(--surface); outline: none; }
   .document-viewer-image { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -434,71 +408,28 @@
   .document-viewer-status[hidden] { display: none; }
   .document-viewer[data-state="error"] .document-viewer-status { color: var(--text-error); }
 
-  /* An annotation in the Surface. */
-  .annotation-viewer { padding: 20px 28px; overflow: auto; color: var(--text); font-size: 13px; line-height: 1.5; }
-  .annotation-viewer header { margin-bottom: 14px; }
-  .annotation-type { display: inline-block; padding: 1px 8px; border-radius: 10px; background: var(--selection); color: var(--text-on-selection); font-size: 11px; letter-spacing: .04em; }
-  .annotation-title { margin: 8px 0 0; font-size: 20px; font-weight: 600; color: var(--text-strong); }
-  .annotation-fields { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 14px; }
-  .annotation-fields dt { color: var(--text-muted); }
-  .annotation-fields dd { margin: 0; }
-  .annotation-text { white-space: pre-wrap; margin: 0 0 18px; }
-  .annotation-text-empty { color: var(--text-muted); font-style: italic; }
-  .annotation-viewer h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
-  .annotation-related-files { margin: 0 0 14px; padding: 0; list-style: none; }
-  .annotation-file { padding: 2px 0; border: 0; background: transparent; color: var(--text-code); font: inherit; text-align: left; cursor: pointer; }
-  .annotation-file:disabled { color: var(--text); cursor: default; }
-  .annotation-hint { color: var(--text-muted); font-size: 12px; }
-  .annotation-error { color: var(--text-error); }
-  .annotation-viewer[data-state="saving"] { opacity: .75; }
-
-  .annotation-unsaved > .tree-row .tree-item::after { content: ' •'; color: var(--text-code-value); }
-
   .explorer-title { display: flex; align-items: center; justify-content: space-between; }
   .explorer-title .tree-group-more { margin-right: 0; }
 
-  .annotation-carousel { margin: 0 0 14px; padding: 10px 12px 12px; border: 1px solid var(--border-input); border-radius: 6px; background: var(--surface); }
-  .annotation-carousel h3 { margin: 0 0 8px; }
-  .annotation-carousel-stage { display: flex; align-items: center; gap: 8px; }
-  .annotation-carousel-strip { flex: 1 1 auto; min-width: 0; display: flex; gap: 10px; }
-  .annotation-carousel-slide { flex: 1 1 0; min-width: 0; margin: 0; text-align: center; }
-  .annotation-carousel-range { margin: 6px 0 0; text-align: center; color: var(--text-muted); font-size: 12px; }
-  .annotation-carousel-slide img { display: block; max-width: 100%; max-height: 180px; width: 100%; margin: 0 auto; object-fit: contain; background: var(--surface-terminal); border-radius: 4px; }
-  .annotation-carousel-slide figcaption { margin-top: 6px; color: var(--text-muted); font-size: 12px; overflow-wrap: anywhere; }
-  .annotation-carousel-nav { flex: 0 0 auto; width: 28px; height: 40px; border: 0; border-radius: 4px; background: var(--surface-hover); color: var(--text-strong); font-size: 20px; line-height: 1; cursor: pointer; }
-  .annotation-carousel-nav:disabled { opacity: .35; cursor: default; }
-  .annotation-carousel-empty { margin: 0; color: var(--text-muted); font-size: 12px; }
-
-  .annotations-panel summary { display: flex; align-items: center; }
-  .annotations-sort { flex: 0 0 auto; margin-left: auto; padding: 1px 6px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); font: inherit; font-size: 10px; letter-spacing: .04em; cursor: pointer; }
-  .annotations-sort[data-order="asc"], .annotations-sort[data-order="desc"] { color: var(--text-on-selection); background: var(--selection); }
-  .annotations-sort:hover, .annotations-sort:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
+  .group-sort { flex: 0 0 auto; margin-left: auto; padding: 1px 6px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); font: inherit; font-size: 10px; letter-spacing: .04em; cursor: pointer; }
+  .group-sort[data-order="asc"], .group-sort[data-order="desc"] { color: var(--text-on-selection); background: var(--selection); }
+  .group-sort:hover, .group-sort:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
 
   .tree-node.tab-active > .tree-row { background: var(--surface-active); }
   .tree-node.tab-active > .tree-row > .tree-item { color: var(--text-strong); font-weight: 700; }
-  /* In the Annotations panel the chevron of an annotation with files sits in the column of the groups' chevrons. */
-  .annotations-panel .tree-item { padding-left: calc(24px + var(--depth, 0) * 12px); }
 
   .tree-more-menu-item.branch::after { content: '▸'; margin-left: auto; padding-left: 12px; color: var(--text-muted); font-size: 10px; }
   .tree-more-menu-item.branch[aria-expanded="true"]::after { content: '▾'; }
   .tree-more-menu-item.child { padding-left: 26px; }
-  .annotations-group-more { margin-left: 2px; }
-  .annotations-group-more[data-busy="true"] { opacity: .5; cursor: progress; }
   .tree-more-menu-item[hidden] { display: none; }
 
-
-  .annotation-carousel-frame { position: relative; display: inline-block; max-width: 100%; }
-  .annotation-carousel-remove { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--image-control-background); color: var(--text-on-accent); font-size: 16px; line-height: 20px; cursor: pointer; opacity: .75; transition: opacity .12s ease; }
-  .annotation-carousel-remove:hover, .annotation-carousel-remove:focus-visible { opacity: 1; }
-  .annotation-carousel-remove:hover { background: var(--text-error); }
-
-  /* Save and Discard changes: small outline icons pinned at the top right of the annotation tab. */
-  .annotation-viewer, .entity-viewer { position: relative; }
-  .annotation-actions { position: sticky; top: 0; z-index: 3; height: 0; display: flex; justify-content: flex-end; gap: 2px; transform: translateY(-12px); }
-  .annotation-actions[hidden] { display: none; }
-  .annotation-action { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-  .annotation-action:hover:not(:disabled), .annotation-action:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
-  .annotation-action:disabled { color: var(--text-disabled); cursor: default; }
+  /* Save and Discard changes: small outline icons pinned at the top right of the entity tab. */
+  .entity-viewer { position: relative; }
+  .entity-actions { position: sticky; top: 0; z-index: 3; height: 0; display: flex; justify-content: flex-end; gap: 2px; transform: translateY(-12px); }
+  .entity-actions[hidden] { display: none; }
+  .entity-action { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .entity-action:hover:not(:disabled), .entity-action:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
+  .entity-action:disabled { color: var(--text-disabled); cursor: default; }
   /* The tags of an entity: at the right of the tab, well below the buttons, with the fields beside them. */
   .entity-aside { float: right; box-sizing: border-box; width: min(280px, 34%); margin: 56px 0 24px 24px; }
   .tag-cloud { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
@@ -549,15 +480,9 @@
   .comment-send { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--text-link); border-radius: 4px; background: transparent; color: var(--text-link); font-size: 12px; cursor: pointer; }
   .comment-send:hover, .comment-send:focus-visible { background: var(--surface-hover); outline: none; }
   /* The trash is red in both themes, dimmed while it is disabled. */
-  .annotation-action.delete, .annotation-action.delete:disabled { color: var(--text-error); }
-  .annotation-action.delete:disabled { opacity: .5; }
-  .annotation-viewer[data-state="dirty"] .annotation-action.save:not(:disabled), .entity-viewer[data-state="dirty"] .annotation-action.save:not(:disabled) { color: var(--text-code-value); }
-  .annotation-carousel-frame img { cursor: zoom-in; }
-
-  .annotation-carousel { position: relative; }
-  .annotation-carousel-add { position: absolute; top: 8px; right: 10px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-  .annotation-carousel-add:hover:not(:disabled), .annotation-carousel-add:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
-  .annotation-carousel-add:disabled { color: var(--text-disabled); cursor: default; }
+  .entity-action.delete, .entity-action.delete:disabled { color: var(--text-error); }
+  .entity-action.delete:disabled { opacity: .5; }
+  .entity-viewer[data-state="dirty"] .entity-action.save:not(:disabled) { color: var(--text-code-value); }
 
   /* The images of the container in the Assistant. */
   .assistant-panel { position: relative; }
@@ -565,15 +490,6 @@
   .file-panel .file-status { padding: 12px; font-size: 13px; color: var(--text-secondary); }
   .image-panel { display: flex; align-items: center; justify-content: center; }
   .image-panel img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .dxf-panel { position: relative; overflow: hidden; background: var(--surface); }
-  .dxf-panel .file-status { position: absolute; top: 0; left: 0; z-index: 1; color: var(--text-secondary); }
-  .dxf-canvas { position: absolute; inset: 0; }
-  .dxf-host { width: 100%; height: 100%; }
-  .dxf-layers { position: absolute; top: 8px; right: 8px; max-height: calc(100% - 16px); min-width: 160px; overflow: auto; padding: 6px 8px; background: var(--surface-raised); color: var(--text); border: 1px solid var(--border-strong); border-radius: 6px; font-size: 12px; }
-  .dxf-layers-title { margin-bottom: 4px; font-weight: 700; letter-spacing: .06em; color: var(--text-secondary); }
-  .dxf-layers ul { margin: 0; padding: 0; list-style: none; }
-  .dxf-layer { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
-  .dxf-layer-swatch { width: 10px; height: 10px; border-radius: 2px; flex: 0 0 auto; }
   .html-panel iframe,
   .pdf-panel iframe { display: block; width: 100%; height: 100%; border: 0; }
   .html-panel iframe { background: #fff; }
@@ -615,29 +531,51 @@
   .image-thumb[data-added="true"] .image-thumb-add { background: var(--success-background); opacity: .9; }
   .image-thumb-nopreview { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; padding: 4px; background: var(--surface-raised); color: var(--text-muted); font-size: 10px; text-align: center; }
 
-  .annotation-related-files li { display: flex; align-items: center; gap: 6px; }
-  .annotation-related-remove { padding: 0 4px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); font-size: 14px; line-height: 1; cursor: pointer; }
-  .annotation-related-remove:hover, .annotation-related-remove:focus-visible { background: var(--surface-hover); color: var(--text-error); outline: none; }
-
-  /* The files icon, where a chevron would be: the annotation refers to files. */
-  .annotation-files-icon { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--text-muted); pointer-events: none; }
-  .tree-node.selected .annotation-files-icon, .tree-node.tab-active .annotation-files-icon { color: var(--text-on-selection); }
-
-  .annotation-viewer[data-state] .annotation-action.delete:hover:not(:disabled), .entity-viewer[data-state] .annotation-action.delete:hover:not(:disabled) { color: var(--text-error); }
+  .entity-viewer[data-state] .entity-action.delete:hover:not(:disabled) { color: var(--text-error); }
   .entity-list-editor { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
   .entity-list-editor ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
   .entity-list-editor li { display: flex; align-items: center; gap: 8px; }
   .entity-list-editor li span { overflow-wrap: anywhere; }
+  .entity-document-editor { display: flex; align-items: center; gap: 8px; }
+  .entity-document-name { overflow-wrap: anywhere; }
+  .entity-document-name.entity-empty { color: var(--text-muted); }
   .entity-list-remove, .entity-list-add { min-width: 22px; height: 22px; padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text); font: inherit; line-height: 1; cursor: pointer; }
   .entity-list-remove:hover, .entity-list-add:hover, .entity-list-remove:focus-visible, .entity-list-add:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
   .entity-list-remove:hover { color: var(--text-error); }
   .document-picker { width: min(560px, calc(100vw - 32px)); }
+  /* The view of the files in a modal or a carousel, list or thumbnails: the button of the explorer, green while they are thumbnails. */
+  .view-toggle { flex: 0 0 auto; display: inline-flex; align-items: center; padding: 3px 6px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); cursor: pointer; }
+  .view-toggle[data-active="true"] { color: var(--text-success); }
+  .view-toggle:hover, .view-toggle:focus-visible { background: var(--surface-hover); outline: none; }
+  .geometry-view { max-width: 640px; }
+  .geometry-view[data-loading] { min-height: 120px; border-radius: 4px; background: var(--border); animation: login-pulse 1.4s ease-in-out infinite; }
+  .geometry-view-note { margin: 0; color: var(--text-muted); font-size: 12px; }
+  .geometry-figure { position: relative; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: #fff; cursor: zoom-in; }
+  .geometry-figure img { display: block; width: 100%; height: auto; }
+  .geometry-figure-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .entity-geometry-editor { position: relative; max-width: 640px; }
+  /* The button that draws sits on the corner of what is shown, where the eye already is. */
+  .entity-geometry-editor > .entity-list-add { position: absolute; top: 6px; right: 6px; z-index: 1; background: var(--surface-raised); }
+  .entity-geometry-list { margin: 0; padding: 0; list-style: none; flex: 1 1 auto; }
+  .entity-geometry-list li { padding: 2px 0; }
+  .document-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .document-picker-header h2 { margin: 0; }
+  .document-picker-divider { height: 0; margin: 6px 0; border-top: 1px solid var(--border-subtle); list-style: none; }
+  .document-picker-list.thumbs .document-picker-divider { grid-column: 1 / -1; margin: 2px 0; }
+  .document-picker-list.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+  .document-picker-list.thumbs button.thumb { display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 3px; text-align: center; white-space: normal; }
+  .carousel { position: relative; }
+  .carousel-view { position: absolute; top: 4px; right: 6px; z-index: 1; }
+  .carousel-list { margin: 0; padding: 0; list-style: none; max-height: 220px; overflow: auto; }
+  .carousel-list button { display: block; width: 100%; padding: 4px 8px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .carousel-list button:hover, .carousel-list button:focus-visible { background: var(--surface-hover); outline: none; }
   .document-picker-list { margin: 8px 0; padding: 0; list-style: none; max-height: 320px; overflow: auto; }
   .document-picker-list button { display: block; width: 100%; padding: 4px 8px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
   .document-picker-list button:hover, .document-picker-list button:focus-visible { background: var(--surface-hover); outline: none; }
   .notices { position: fixed; right: 16px; bottom: 36px; z-index: 50; display: flex; flex-direction: column; gap: 8px; max-width: min(520px, calc(100vw - 32px)); }
   .notice { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-left-width: 3px; border-radius: 4px; background: var(--background); color: var(--text); font-size: 13px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
   .notice.error { border-left-color: var(--text-error); }
+  .notice.warning { border-left-color: var(--status-warning); }
   .notice.info { border-left-color: var(--text-muted); }
   .notice-text { flex: 1 1 auto; overflow-wrap: anywhere; }
   .notice-close { flex: 0 0 auto; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--text); font-size: 16px; line-height: 1; cursor: pointer; }
@@ -672,6 +610,7 @@
   input.entity-editor[type="checkbox"] { width: auto; }
   .carousel { margin: 0 0 6px; padding: 8px 10px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); }
   .carousel-stage { display: flex; align-items: center; gap: 8px; }
+  .carousel-stage[hidden] { display: none; }
   .carousel-strip { flex: 1 1 auto; min-width: 0; display: flex; gap: 10px; }
   .carousel-slide { flex: 1 1 0; min-width: 0; margin: 0; text-align: center; }
   .carousel-slide img { display: block; max-width: 100%; max-height: 180px; width: 100%; margin: 0 auto; object-fit: contain; border-radius: 4px; cursor: zoom-in; }

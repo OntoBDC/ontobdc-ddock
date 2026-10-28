@@ -33,7 +33,7 @@ export class OnEntitySaveRequested {
 
   /**
    * Runs `ontobdc container --entity <id> --update '<changes as JSON>'`. When it
-   * worked, publishes `presentation.entity.saved` (which ends the editing) and
+   * worked, publishes `presentation.entity.saved` with the fields it saved (which ends the editing) and
    * reads that entity again so the database panel and its tab show the new values; when it
    * did not, publishes `presentation.entity.save.failed` with the reason and the
    * editing stays open.
@@ -53,7 +53,7 @@ export class OnEntitySaveRequested {
       eventBus.publish('presentation.entity.save.failed', SOURCE, { id, message: error instanceof Error ? error.message : String(error) });
       return;
     }
-    eventBus.publish('presentation.entity.saved', SOURCE, { id });
+    eventBus.publish('presentation.entity.saved', SOURCE, { id, changed: Object.keys(changes) });
     // Only the entity that was saved is read again: the others did not change.
     try {
       await publishEntity(id, SOURCE);

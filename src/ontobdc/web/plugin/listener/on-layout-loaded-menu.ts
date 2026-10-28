@@ -59,7 +59,8 @@ export class OnLayoutLoadedMenu {
       view.element.hidden = true;
       host.append(view.element);
       mounted.push(view);
-      applyTranslations(button);
     }
+    // The buttons carry their words as data-i18n-* attributes; applying them on the bar fills each button's own title and aria-label.
+    applyTranslations(bar);
   }
 }

@@ -8,7 +8,6 @@ export type AnnotationItem = {
   createdAt: string;
   /** When the annotation was closed (`completed_at`); empty while it is open. */
   completedAt: string;
-  geometry: string;
   /** Path, in the container, of the document the annotation was made on; empty when none. */
   sourceDocument: string;
   /** Paths, in the container, of the files the annotation refers to. */

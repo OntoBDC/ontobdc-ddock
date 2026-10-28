@@ -86,7 +86,10 @@ export function planPull(seen: FolderListing, found: FolderListing): PullPlan {
   return { remove, createDirs, load };
 }
 
-const READ_ONLY_FLAGS = new Set<string>(['--inspect', '--list', '--read', '--tree']);
+const READ_ONLY_FLAGS = new Set<string>(['--inspect', '--list', '--tree']);
+/** The programs of the CLI, and the component of each that holds the container (`ontobdc container`, `infobim project`). */
+const PROGRAMS = new Set<string>(['ontobdc', 'infobim']);
+const CONTAINER_COMPONENTS = new Set<string>(['container', 'project']);
 const MUTATING_FLAGS = new Set<string>(['--attach', '--create', '--dataset', '--delete', '--reconcile', '--refresh', '--update']);
 
 /**
@@ -94,13 +97,13 @@ const MUTATING_FLAGS = new Set<string>(['--attach', '--create', '--dataset', '--
  * names an entity is one of them unless it says it writes: `--dataset` makes the dataset of the entity.
  */
 export function commandWritesToMount(argv: string[]): boolean {
-  if (argv[0] !== 'ontobdc') return true;
+  if (!PROGRAMS.has(argv[0])) return true;
   if (argv.some((argument) => MUTATING_FLAGS.has(argument))) return true;
-  if (argv[1] === 'container' && argv.includes('--entity')) return false;
+  if (CONTAINER_COMPONENTS.has(argv[1]) && argv.includes('--entity')) return false;
   return !argv.some((argument) => READ_ONLY_FLAGS.has(argument));
 }
 
 /** A command that asks to look at the folder again: whatever changed on disk must be in the copy it works on. */
 export function commandForcesPull(argv: string[]): boolean {
-  return argv[0] === 'ontobdc' && argv.includes('--refresh');
+  return PROGRAMS.has(argv[0]) && argv.includes('--refresh');
 }

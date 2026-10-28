@@ -7,7 +7,8 @@ import type { PythonWorkerRequest, PythonWorkerResponse } from '@/ontobdc/shared
 type PendingKind = 'command' | 'feature-message' | 'package-versions';
 
 const UNAVAILABLE = 'Python is unavailable. Reload the page to start it.';
-const SUPERSEDED = 'A newer identical command replaced this queued command.';
+/** Why a queued command that a newer identical one replaced is told to have failed: the newer one will give the same answer. */
+export const SUPERSEDED = 'A newer identical command replaced this queued command.';
 /** What the queue shows for a command that did not reach the interpreter: its answer was already known. */
 const CACHED = 'cache';
 

@@ -1,5 +1,5 @@
 import type { ExplorerNode } from '@/ontobdc/shared/domain/model/explorer-node';
-import type { EntityField, EntityGroup, EntityItem, EntityTreeNode } from '@/ontobdc/shared/domain/model/entity';
+import type { EntityField, EntityGeometry, EntityGroup, EntityItem, EntityTreeNode } from '@/ontobdc/shared/domain/model/entity';
 import type { ContainerInspection, ContainerInspectionNode } from '@/ontobdc/shared/domain/model/container';
 
 /** Where every OntoBDC container keeps its RO-Crate, relative to the container root. */
@@ -249,16 +249,32 @@ function entityFieldsOf(fields: unknown): EntityField[] {
   const parsed: EntityField[] = [];
   for (const field of fields as Array<Record<string, unknown>>) {
     if (typeof field.name !== 'string' || !field.name) continue;
+    const raw = Array.isArray(field.values) ? field.values : [];
+    const geometries = Array.isArray(field.geometries) ? field.geometries : undefined;
+    // A value that is empty is none, and what it is besides the text goes with it.
+    const kept = raw.flatMap((value, index) => (typeof value === 'string' && value !== '' ? [index] : []));
     parsed.push({
       name: field.name,
       labels: entityLabelsOf(field.labels),
       editable: field.editable === true,
-      values: Array.isArray(field.values)
-        ? field.values.filter((value): value is string => typeof value === 'string' && value !== '').map(unwrapCliText)
-        : [],
+      values: kept.map((index) => unwrapCliText(raw[index] as string)),
+      ...(geometries ? { geometries: kept.flatMap((index) => { const geometry = entityGeometryOf(geometries[index]); return geometry ? [geometry] : []; }) } : {}),
     });
   }
   return parsed;
+}
+
+function entityGeometryOf(value: unknown): EntityGeometry | null {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.wkt !== 'string') return null;
+  const text = (item: unknown): string | null => (typeof item === 'string' && item !== '' ? item : null);
+  return {
+    id: value.id,
+    wkt: unwrapCliText(value.wkt),
+    shape: text(value.shape),
+    stroke: text(value.stroke),
+    stroke_width: typeof value.stroke_width === 'number' ? value.stroke_width : null,
+    fill: text(value.fill),
+  };
 }
 
 function entityLabelsOf(labels: unknown): Record<string, string> {

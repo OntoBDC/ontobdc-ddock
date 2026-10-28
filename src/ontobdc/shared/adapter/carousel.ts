@@ -1,3 +1,4 @@
+import { createViewToggle } from '@/ontobdc/shared/adapter/view-toggle';
 import { onLocaleChange, translate } from '@/ontobdc/shared/plugin/i18n';
 
 /** One image of a carousel. It is loaded only when it is about to be shown. */
@@ -24,8 +25,9 @@ export type Carousel = {
 };
 
 /**
- * A row of images with Previous and Next buttons and the range being shown. It
- * knows nothing about entities or files: it is given items and draws them.
+ * A row of images with Previous and Next buttons and the range being shown, which a button of the corner turns into
+ * a list of their names, as the explorer turns its files into a list. It knows nothing about entities or files: it is
+ * given items and draws them.
  */
 export function createCarousel(options: CarouselOptions = {}): Carousel {
   const visible = options.visible ?? 3;
@@ -48,8 +50,12 @@ export function createCarousel(options: CarouselOptions = {}): Carousel {
   range.className = 'carousel-range';
   const empty = document.createElement('p');
   empty.className = 'carousel-empty';
+  const names = document.createElement('ul');
+  names.className = 'carousel-list';
+  let asList = false;
+  const view = createViewToggle({ className: 'view-toggle carousel-view', thumbs: true, onChange: (thumbs) => { asList = !thumbs; show(); } });
   stage.append(previous, strip, next);
-  element.append(stage, range, empty);
+  element.append(view.element, stage, range, names, empty);
 
   let items: CarouselItem[] = [];
   let first = 0;
@@ -83,6 +89,17 @@ export function createCarousel(options: CarouselOptions = {}): Carousel {
     return slide;
   };
 
+  const name = (item: CarouselItem): HTMLElement => {
+    const entry = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = item.caption;
+    button.title = translate('carousel.openImage');
+    button.addEventListener('dblclick', () => options.onOpen?.(item.id));
+    entry.append(button);
+    return entry;
+  };
+
   const ensure = (item: CarouselItem): Promise<void> => {
     const pending = loading.get(item.id);
     if (pending) return pending;
@@ -103,6 +120,14 @@ export function createCarousel(options: CarouselOptions = {}): Carousel {
     element.dataset.count = String(items.length);
     stage.hidden = range.hidden = window.length === 0;
     empty.hidden = window.length !== 0;
+    view.element.hidden = items.length === 0;
+    names.hidden = asList === false || items.length === 0;
+    if (asList) {
+      stage.hidden = range.hidden = true;
+      names.replaceChildren(...items.map(name));
+      strip.replaceChildren();
+      return;
+    }
     if (window.length === 0) {
       strip.replaceChildren();
       return;

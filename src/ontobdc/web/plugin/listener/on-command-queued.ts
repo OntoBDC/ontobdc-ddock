@@ -1,4 +1,5 @@
 import { eventBus, type AppEvent } from '@/ontobdc/shared/adapter/event-bus';
+import { isNoticedInQueue } from '@/ontobdc/shared/adapter/queue-notice';
 import { notify } from '@/ontobdc/shared/adapter/notice';
 import type { AppEventMap } from '@/ontobdc/shared/domain/model/event';
 import type { ListenerMetadata } from '@/ontobdc/shared/domain/model/listener';
@@ -11,9 +12,6 @@ const SOURCE = 'web_on_command_queued';
 
 /** How long the listener looks for the command in the queue before it gives up: the runtime may still be loading, and the queue only knows the command when it is ready. */
 const LOOK_MS = 60000;
-
-/** The commands that are told to wait in the queue: the export of annotations, which takes long and leaves a file. The others are quick enough to need no notice. */
-const NOTICED = /\sannotate\s.*--export(\s|$)/;
 
 type CommandRequested = AppEventMap[typeof COMMAND_REQUESTED];
 
@@ -38,13 +36,13 @@ export class OnCommandQueued {
   }
 
   /**
-   * For the export of annotations, looks at the queue: when it is not the one running but
+   * For a command that an addon asks to be told about (a long one), looks at the queue: when it is not the one running but
    * waits behind another, the person is told, so they know it was heard and where to follow it.
    * A command that starts at once needs no notice.
    */
   run(): void {
     const { requestId, command } = this.request ?? {};
-    if (!requestId || !command || !NOTICED.test(` ${command}`)) return;
+    if (!requestId || !command || !isNoticedInQueue(` ${command}`)) return;
 
     const stop = (): void => {
       unsubscribe();

@@ -1,3 +1,4 @@
+import { documentFieldsOf, findListEditor } from '@/ontobdc/shared/adapter/list-editors';
 import { pickDocument } from '@/ontobdc/shared/adapter/document-picker';
 import { eventBus, type AppEvent } from '@/ontobdc/shared/adapter/event-bus';
 import { promptDialog } from '@/ontobdc/shared/adapter/prompt-dialog';
@@ -13,7 +14,7 @@ export class OnEntityListItemAddRequested {
   static readonly METADATA: ListenerMetadata = {
     id: SOURCE,
     logical_component: 'web',
-    description: 'Shows the files of the container (or asks for a text) to choose the item to add to a list field, and says which was chosen.',
+    description: 'Shows the files of the container (or asks for a text) to choose the item to add to a list field, with the documents the entity already refers to first, and says which was chosen.',
     arguments: [
       {
         listen: [ADD_REQUESTED], valued: true, parameter: 'field',
@@ -39,7 +40,7 @@ export class OnEntityListItemAddRequested {
     if (owner === undefined || !field) throw new Error('The request to add an item carries no owner or field.');
 
     const item = documents === true
-      ? await pickDocument()
+      ? await pickDocument({ preferred: this.documentsOf(owner, field) })
       : await promptDialog({
         title: translate('entity.list.prompt.title'),
         label: translate('entity.list.new'),
@@ -47,5 +48,10 @@ export class OnEntityListItemAddRequested {
         cancelLabel: translate('confirm.cancel'),
       });
     if (item) eventBus.publish('presentation.entity.list.item.chosen', SOURCE, { owner, field, item });
+  }
+
+  /** The documents the entity already refers to in its other fields of documents, as the person has them now. */
+  private documentsOf(owner: string, field: string): string[] {
+    return documentFieldsOf(owner).filter((other) => other !== field).flatMap((other) => findListEditor(owner, other)?.items?.() ?? []);
   }
 }

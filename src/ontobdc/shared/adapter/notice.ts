@@ -1,6 +1,6 @@
 import { translate } from '@/ontobdc/shared/plugin/i18n';
 
-export type NoticeKind = 'error' | 'info';
+export type NoticeKind = 'error' | 'warning' | 'info';
 
 const AUTO_CLOSE_MS = 12000;
 

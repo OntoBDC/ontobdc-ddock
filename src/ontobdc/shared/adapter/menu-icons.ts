@@ -2,6 +2,9 @@
 const outline = (paths: string): string =>
   `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
+/** A square and a circle: draw shapes. */
+export const DRAW_ICON = outline('<rect x="2.5" y="2.5" width="6" height="6"/><circle cx="10.5" cy="10.5" r="3"/>');
+
 /** Two arrows going round: read again. */
 export const REFRESH_ICON = outline('<path d="M13 8a5 5 0 1 1-1.5-3.5"/><path d="M13 2.5v3h-3"/>');
 

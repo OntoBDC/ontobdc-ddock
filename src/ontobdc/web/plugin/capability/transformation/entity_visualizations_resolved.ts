@@ -80,7 +80,7 @@ export class EntityVisualizationsResolvedCapability {
           if (!aside) {
             aside = document.createElement('aside');
             aside.className = 'entity-aside';
-            panel.querySelector('.annotation-actions')?.after(aside);
+            panel.querySelector('.entity-actions')?.after(aside);
             asides.set(panel, aside);
           }
           aside.append(visualization.element);

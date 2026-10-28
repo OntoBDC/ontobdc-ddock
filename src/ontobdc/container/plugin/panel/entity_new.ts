@@ -31,16 +31,16 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
   root.tabIndex = -1;
 
   const actions = document.createElement('div');
-  actions.className = 'annotation-actions';
+  actions.className = 'entity-actions';
   const save = document.createElement('button');
   save.type = 'button';
-  save.className = 'annotation-action save';
+  save.className = 'entity-action save';
   save.dataset.action = 'save';
   save.disabled = true;
   save.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2h8l2 2v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M5 2v4h5V2M5 14v-4h6v4"/></svg>';
   actions.append(save);
   const titleSave = (): void => {
-    save.title = translate('annotations.menu.save');
+    save.title = translate('entity.action.save');
     save.setAttribute('aria-label', save.title);
   };
   titleSave();
@@ -94,13 +94,14 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
       labels.set(term, { labels: field.labels, name: field.identifier, required: field.required === true });
       term.textContent = labelText(field.identifier, field.labels, field.required === true);
       const detail = document.createElement('dd');
-      const editor = (await editorFor(field.datatype, field.options, field.multivalued === true))({
+      const documents = field.resource_facade?.fields.some((resource) => resource.identifier === 'title') === true;
+      const editor = (await editorFor(field.datatype, field.options, field.multivalued === true, documents))({
         value: initial[field.identifier] ?? '',
         datatype: field.datatype ?? '',
         label: term.textContent,
         options: field.options,
         multivalued: field.multivalued === true,
-        documents: field.resource_facade?.fields.some((resource) => resource.identifier === 'title') === true,
+        documents,
         owner: `new:${groupId}`,
         field: field.identifier,
         optionLabels: Object.fromEntries((field.options ?? []).map((option) => [option, nameIn(field.option_labels?.[option], getLocale()) ?? option])),

@@ -10,7 +10,11 @@ RUN apk add --no-cache python3 py3-pip \
 ENV PATH="/opt/wheel-build/bin:${PATH}"
 
 # The lockfile pins every dependency to the versions the tests ran with.
+# Each addon declares its own dependencies in its package.json (npm workspaces), so those
+# files go in before the install; a new addon adds a line here.
 COPY src/package.json src/package-lock.json ./
+COPY src/addon/annotations/package.json ./addon/annotations/package.json
+COPY src/addon/productivity/package.json ./addon/productivity/package.json
 
 RUN npm ci --no-audit --no-fund
 

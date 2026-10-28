@@ -60,6 +60,16 @@ export class EntityRepository {
     return this.groups;
   }
 
+  /**
+   * Groups that a command read from outside the lists the database shows, kept so the tab of one of
+   * their entities can find it: a group the repository has is given the entities it did not have, and
+   * one it does not have is added.
+   */
+  attach(groups: EntityGroup[]): void {
+    const known = new Set(this.groups.map((group) => group.id));
+    this.groups = [...withEntitiesRead(this.groups, groups), ...groups.filter((group) => !known.has(group.id))];
+  }
+
   /** The entity with this global id, with its group, among the groups last shown. */
   find(id: string): { group: EntityGroup; item: EntityItem } | null {
     for (const group of this.groups) {

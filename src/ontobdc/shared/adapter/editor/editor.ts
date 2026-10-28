@@ -28,6 +28,10 @@ export type Editor = {
   isValid(): boolean;
   /** Called whenever the person changes it. */
   onChange(listener: () => void): void;
+  /** What the person chooses is saved as soon as they choose it, with whatever else of the entity they changed: there is no need to press Save. */
+  commits?: boolean;
+  /** What the editor shows was changed by someone else while it was open, so the tab has to be read again when the editing ends, saved or not. */
+  stale?(): boolean;
 };
 
 export type EditorFactory = (options: EditorOptions) => Editor;

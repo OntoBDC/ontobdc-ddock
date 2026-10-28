@@ -47,7 +47,7 @@ export class OnAnnotationsGroupExportRequested {
     eventBus.publish('presentation.annotations.group.export.started', SOURCE, { group });
     try {
       const container = ContainerRepository.getInstance().get();
-      if (container?.access !== 'readwrite' || !container.folder) throw new Error(translate('annotations.menu.readOnly'));
+      if (container?.access !== 'readwrite' || !container.folder) throw new Error(translate('container.readOnly'));
 
       // The ids are of what the group showed: the ones it hid are not exported.
       const only = (this.request?.ids ?? []).filter((id) => !id.includes('|')).join('|');

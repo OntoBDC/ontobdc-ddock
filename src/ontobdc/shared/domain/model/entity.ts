@@ -1,4 +1,8 @@
-export type EntityField = { name: string; labels: Record<string, string>; editable: boolean; values: string[] };
+/** A geometry of an entity: its identifier, which stays while the others come and go, its well-known text, the shape it was made as, and how it is drawn. */
+export type EntityGeometry = { id: string; wkt: string; shape: string | null; stroke: string | null; stroke_width: number | null; fill: string | null };
+
+/** `geometries` is, for a field of geometries, what each of its values is besides the text: one for each value, in the same order. */
+export type EntityField = { name: string; labels: Record<string, string>; editable: boolean; values: string[]; geometries?: EntityGeometry[] };
 
 /** One entity of a dataset, as `ontobdc container --entity` tells it: its fields are whatever its data source holds. */
 export type EntityItem = { id: string; name: string; type: string; fields: EntityField[] };

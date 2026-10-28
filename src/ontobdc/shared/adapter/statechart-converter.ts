@@ -120,80 +120,10 @@ export function stateSequence(config: StatechartConfig): string[] {
   return sequence;
 }
 
-export type ChainStateNode = { type?: 'final'; on?: { STEP: Transition[] } };
-export type ChainRegionConfig = { initial: string; states: Record<string, ChainStateNode> };
-export type ChainStatechartConfig = { id: string; regions: Record<string, ChainRegionConfig> };
-
-const CHAIN_CALL = /^(not\s+)?([A-Za-z_]\w*\.[A-Za-z_]\w*)\(\s*'([^']*)'\s*\)$/;
-const KNOWN_CHAIN_REGION_KEYS = new Set(['name', 'initial', 'states']);
-const KNOWN_CHAIN_STATE_KEYS = new Set(['name', 'transitions', 'type']);
-
-/** `not worker.can_handle('<capability id>')` into a named call; anything else fails. */
-export function parseChainCall(expression: string): NamedCall {
-  const match = CHAIN_CALL.exec(expression.trim());
-  if (!match) return fail(`unsupported chain expression: ${expression}`);
-  return { type: match[2], params: { id: match[3] }, negated: Boolean(match[1]) };
-}
-
-/**
- * Turns a chain-of-responsibility statechart (parallel root, one region per
- * responsibility) into an XState parallel configuration. Each region's guard
- * and action name, as a string literal, the id of the capability it runs.
- */
-export function convertChainStatechart(source: string): ChainStatechartConfig {
+/** The name of a chain-of-responsibility statechart; its regions are built by the worker from the capabilities. */
+export function chainName(source: string): string {
   const document: unknown = parse(source);
   const statechart = isRecord(document) ? document.statechart : undefined;
-  const root = isRecord(statechart) ? statechart['root state'] : undefined;
-  if (!isRecord(statechart) || !isRecord(root)) return fail('no "statechart" with a "root state".');
-  if (typeof root.name !== 'string' || !Array.isArray(root['parallel states'])) {
-    return fail('the root state needs name and "parallel states".');
-  }
-
-  const regions: Record<string, ChainRegionConfig> = {};
-  for (const entry of root['parallel states'] as unknown[]) {
-    if (!isRecord(entry) || typeof entry.name !== 'string') return fail('a region has no name.');
-    const regionName = entry.name;
-    for (const key of Object.keys(entry)) if (!KNOWN_CHAIN_REGION_KEYS.has(key)) fail(`region ${regionName}: unsupported key "${key}".`);
-    if (typeof entry.initial !== 'string' || !Array.isArray(entry.states)) {
-      return fail(`region ${regionName}: needs initial and states.`);
-    }
-
-    const states: Record<string, ChainStateNode> = {};
-    for (const stateEntry of entry.states as unknown[]) {
-      if (!isRecord(stateEntry) || typeof stateEntry.name !== 'string') return fail(`region ${regionName}: a state has no name.`);
-      const name = stateEntry.name;
-      for (const key of Object.keys(stateEntry)) if (!KNOWN_CHAIN_STATE_KEYS.has(key)) fail(`region ${regionName}: state ${name}: unsupported key "${key}".`);
-      if (stateEntry.type !== undefined && stateEntry.type !== 'final') fail(`region ${regionName}: state ${name}: unsupported type "${String(stateEntry.type)}".`);
-
-      const node: ChainStateNode = {};
-      if (stateEntry.type === 'final') node.type = 'final';
-
-      if (stateEntry.transitions !== undefined) {
-        if (!Array.isArray(stateEntry.transitions)) return fail(`region ${regionName}: state ${name}: transitions must be a list.`);
-        node.on = {
-          STEP: (stateEntry.transitions as unknown[]).map((transition): Transition => {
-            if (!isRecord(transition) || typeof transition.target !== 'string') return fail(`region ${regionName}: state ${name}: a transition has no target.`);
-            for (const key of Object.keys(transition)) if (!KNOWN_TRANSITION_KEYS.has(key)) fail(`region ${regionName}: state ${name}: unsupported transition key "${key}".`);
-            return {
-              target: transition.target,
-              ...(typeof transition.guard === 'string' ? { guard: parseChainCall(transition.guard) } : {}),
-              ...(typeof transition.action === 'string' ? { actions: [parseChainCall(transition.action)] } : {}),
-            };
-          }),
-        };
-      }
-      states[name] = node;
-    }
-
-    if (!(entry.initial in states)) return fail(`region ${regionName}: initial state "${entry.initial}" is not defined.`);
-    for (const node of Object.values(states)) {
-      for (const transition of node.on?.STEP ?? []) {
-        if (!(transition.target in states)) fail(`region ${regionName}: target "${transition.target}" is not defined.`);
-      }
-    }
-
-    regions[regionName] = { initial: entry.initial, states };
-  }
-
-  return { id: root.name, regions };
+  if (!isRecord(statechart) || typeof statechart.name !== 'string') return fail('no "statechart" with a name.');
+  return statechart.name;
 }

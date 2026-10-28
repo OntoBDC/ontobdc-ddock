@@ -1,7 +1,8 @@
 import { ANNOTATION_ENTITY_TYPE, annotationDataset } from '@/addon/annotations/adapter/annotation-dataset';
 import { groupLabel, isClosed } from '@/addon/annotations/adapter/annotation-format';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
-import { EXPORT_ICON, NEW_ICON, OPEN_ICON } from '@/ontobdc/shared/adapter/menu-icons';
+import { documentImageRenderer } from '@/ontobdc/shared/adapter/document-image';
+import { DRAW_ICON, EXPORT_ICON, NEW_ICON, OPEN_ICON } from '@/ontobdc/shared/adapter/menu-icons';
 import { createMoreMenu } from '@/ontobdc/shared/adapter/more-menu';
 import { ContainerRepository } from '@/ontobdc/shared/adapter/container-repository';
 import type { Mountable } from '@/ontobdc/shared/adapter/view';
@@ -125,10 +126,23 @@ export default function makeAnnotations(): Mountable {
       if (moreMenu.isOpen()) { moreMenu.close(); return; }
       moreMenu.show(more, [
         { id: 'open', label: translate('annotations.menu.open'), icon: OPEN_ICON, run: () => open(group, annotation) },
+        ...(annotation.sourceDocument && documentImageRenderer(annotation.sourceDocument)
+          ? [{
+              id: 'draw',
+              label: translate('annotations.menu.draw'),
+              icon: DRAW_ICON,
+              ...(writable() ? {} : { disabledReason: translate('container.readOnly') }),
+              run: () => eventBus.publish('presentation.annotations.geometry.draw.requested', SOURCE, {
+                id: annotation.id,
+                title: annotation.title,
+                document: annotation.sourceDocument,
+              }),
+            }]
+          : []),
         {
           id: 'delete',
-          label: translate('annotations.menu.delete'),
-          ...(writable() ? {} : { disabledReason: translate('annotations.menu.readOnly') }),
+          label: translate('entity.action.delete'),
+          ...(writable() ? {} : { disabledReason: translate('container.readOnly') }),
           run: () => eventBus.publish('presentation.annotations.item.delete.requested', SOURCE, { id: annotation.id, title: annotation.title }),
         },
       ]);
@@ -211,10 +225,10 @@ export default function makeAnnotations(): Mountable {
       const order = sortOrder.get(group.id);
       const sort = document.createElement('button');
       sort.type = 'button';
-      sort.className = 'annotations-sort';
+      sort.className = 'group-sort';
       sort.dataset.order = order ?? 'none';
       sort.textContent = order === 'asc' ? 'A→Z' : order === 'desc' ? 'Z→A' : 'A↕Z';
-      sort.title = translate(order === 'asc' ? 'annotations.sort.desc' : 'annotations.sort.asc');
+      sort.title = translate(order === 'asc' ? 'group.sort.desc' : 'group.sort.asc');
       sort.setAttribute('aria-label', sort.title);
       sort.addEventListener('click', (event) => {
         event.preventDefault();
@@ -236,12 +250,12 @@ export default function makeAnnotations(): Mountable {
         event.stopPropagation();
         if (moreMenu.isOpen()) { moreMenu.close(); return; }
         const blocker = !writable()
-          ? translate('annotations.menu.readOnly')
+          ? translate('container.readOnly')
           : exporting.has(group.id)
             ? translate('annotations.export.exporting')
             : visibleIds(group).length === 0 ? translate('annotations.export.empty') : undefined;
         // A new annotation is a new entity of the type: the generic flow of the entities.
-        const newBlocker = !writable() ? translate('annotations.menu.readOnly') : undefined;
+        const newBlocker = !writable() ? translate('container.readOnly') : undefined;
         moreMenu.show(more, [
           {
             id: 'new',

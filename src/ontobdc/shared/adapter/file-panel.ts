@@ -27,7 +27,8 @@ export type FilePanelOptions = {
 /**
  * Builds the panel of a tab that shows one file of the opened container. The
  * factory cannot fail once Dockview added the tab, so every problem (no
- * container, unreadable file) is shown inside the tab.
+ * container, unreadable file) is shown inside the tab. The tab draws its file again when
+ * `presentation.explorer.file.reload.requested` names it.
  */
 export function makeFilePanel(options: FilePanelOptions): PanelFactory {
   return ({ id }): Mountable => {
@@ -48,8 +49,11 @@ export function makeFilePanel(options: FilePanelOptions): PanelFactory {
 
     let release: (() => void) | void;
     let disposed = false;
+    /** Which drawing of the file is the current one: a file read again while the last read is still going supersedes it. */
+    let drawing = 0;
 
     const load = async (): Promise<void> => {
+      const mine = ++drawing;
       const loading = showStatus(translate('file.loading'));
       const folder = ContainerRepository.getInstance().get()?.folder;
       if (!folder) {
@@ -58,23 +62,36 @@ export function makeFilePanel(options: FilePanelOptions): PanelFactory {
       }
       try {
         const file = await ContainerFileRepository.of(folder).file(item);
-        if (disposed) return;
+        if (disposed || mine !== drawing) return;
         // The loading line stays until the file is drawn; heavy files take a while.
-        release = await options.render(file, element, item);
+        const released = await options.render(file, element, item);
+        if (disposed || mine !== drawing) {
+          released?.();
+          return;
+        }
+        release = released;
         loading.remove();
-        if (disposed) release?.();
       } catch (error) {
-        if (!disposed) {
+        if (!disposed && mine === drawing) {
           showStatus(translate('file.loadFailed', { message: error instanceof Error ? error.message : String(error) }), 'alert');
         }
       }
     };
     void load();
 
+    // The person asked to read the file again: what the tab holds is released and the file is drawn anew.
+    const unsubscribe = eventBus.subscribe('presentation.explorer.file.reload.requested', ({ payload }) => {
+      if (payload?.item !== item || disposed) return;
+      release?.();
+      release = undefined;
+      void load();
+    });
+
     return {
       element,
       dispose: () => {
         disposed = true;
+        unsubscribe();
         release?.();
         element.remove();
         eventBus.publish(options.closedEvent, options.prefix, { item });

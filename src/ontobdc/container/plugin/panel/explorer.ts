@@ -3,6 +3,7 @@ import { EntityRepository } from '@/ontobdc/shared/adapter/entity-repository';
 import { tagNodesOf } from '@/ontobdc/shared/adapter/entity-tags';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { DELETE_ICON, NEW_ICON, OPEN_ICON, REFRESH_ICON, RELATE_ICON, RENAME_ICON, UPLOAD_ICON } from '@/ontobdc/shared/adapter/menu-icons';
+import { createViewToggle } from '@/ontobdc/shared/adapter/view-toggle';
 import { createThumbnails, extensionLabel, isImageFile } from '@/ontobdc/shared/adapter/file-thumbnails';
 import { createHistoryView } from '@/ontobdc/shared/adapter/history-view';
 import type { Mountable } from '@/ontobdc/shared/adapter/view';
@@ -12,9 +13,6 @@ import type { ExplorerNode } from '@/ontobdc/shared/domain/model/explorer-node';
 import { applyTranslations, getLocale, onLocaleChange, translate, type MessageKey } from '@/ontobdc/shared/plugin/i18n';
 
 const SOURCE = 'explorer';
-
-/** Four tiles: the files as thumbnails. */
-const GRID_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>';
 
 const EXPLORER_GROUPS: Array<{ id: ExplorerGroupId; label: MessageKey }> = [
   { id: 'files', label: 'explorer.group.files' },
@@ -29,6 +27,7 @@ const EXPLORER_GROUPS: Array<{ id: ExplorerGroupId; label: MessageKey }> = [
 const ITEM_MENU: Record<ExplorerGroupId, ActionMenuTable> = {
   files: [
     { id: 'open', label: 'explorer.menu.open', icon: OPEN_ICON, event: 'presentation.explorer.file.activated' },
+    { id: 'reload', label: 'explorer.menu.reload', icon: REFRESH_ICON, event: 'presentation.explorer.file.reload.requested' },
     { id: 'relate', label: 'explorer.menu.relate', icon: RELATE_ICON, event: 'presentation.explorer.file.relate.requested' },
     { id: 'rename', label: 'explorer.menu.rename', icon: RENAME_ICON, shortcut: 'explorer.menu.shortcut.rename', event: 'presentation.explorer.file.rename.requested' },
     { id: 'delete', label: 'explorer.menu.delete', icon: DELETE_ICON, shortcut: 'explorer.menu.shortcut.delete', event: 'presentation.explorer.file.delete.requested' },
@@ -265,25 +264,15 @@ export default function makeExplorer(): Mountable {
 
     // The files can be shown as a list or as thumbnails: the button is green while they are thumbnails.
     if (group.id === 'files') {
-      const view = document.createElement('button');
-      view.type = 'button';
-      view.className = 'tree-group-view';
-      view.innerHTML = GRID_ICON;
-      const refreshView = (): void => {
-        view.dataset.active = String(thumbs);
-        view.setAttribute('aria-pressed', String(thumbs));
-        view.title = translate(thumbs ? 'explorer.files.asList' : 'explorer.files.asThumbs');
-        view.setAttribute('aria-label', view.title);
-      };
-      refreshView();
-      view.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        thumbs = !thumbs;
-        refreshView();
-        renderGroup('files', filesNodes);
+      const view = createViewToggle({
+        className: 'tree-group-view',
+        thumbs,
+        onChange: (next) => {
+          thumbs = next;
+          renderGroup('files', filesNodes);
+        },
       });
-      summary.appendChild(view);
+      summary.appendChild(view.element);
     }
 
     const menu = GROUP_MENU[group.id];

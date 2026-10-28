@@ -1,4 +1,5 @@
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
+import { rewriteCommand } from '@/ontobdc/shared/adapter/command-rewriter';
 import type {
   PythonCommandResult,
   PythonFeatureDevice,
@@ -10,9 +11,11 @@ import type {
 
 /**
  * Run one CLI command in the runtime and wait for its correlated reply. The queue knows the command
- * by `requestId`, which is the one of the request that asked for it when there is one.
+ * by `requestId`, which is the one of the request that asked for it when there is one. The addons named
+ * by `override.command` may rewrite the command here, the one place every command passes through.
  */
 export function runPythonCommand(source: string, argv: string[], mount: PythonMount, requestId: string = crypto.randomUUID()): Promise<PythonCommandResult> {
+  const command = rewriteCommand({ argv, mount });
   return new Promise((resolve, reject) => {
     const stop = (): void => {
       unsubscribeCompleted();
@@ -28,7 +31,7 @@ export function runPythonCommand(source: string, argv: string[], mount: PythonMo
       stop();
       reject(new Error(event.payload.message));
     });
-    eventBus.publish('presentation.python.command.requested', source, { requestId, argv, mount });
+    eventBus.publish('presentation.python.command.requested', source, { requestId, argv: command.argv, mount: command.mount });
   });
 }
 

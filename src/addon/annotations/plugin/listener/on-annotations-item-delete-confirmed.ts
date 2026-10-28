@@ -42,7 +42,7 @@ export class OnAnnotationsItemDeleteConfirmed {
     if (!id) throw new Error('The confirmed deletion carries no annotation id.');
 
     try {
-      if (ContainerRepository.getInstance().get()?.access !== 'readwrite') throw new Error(translate('annotations.menu.readOnly'));
+      if (ContainerRepository.getInstance().get()?.access !== 'readwrite') throw new Error(translate('container.readOnly'));
       await requestCommand(`ontobdc annotate --guid ${quoted(id)} --delete`, SOURCE);
     } catch (error) {
       eventBus.publish('presentation.annotations.item.delete.failed', SOURCE, { id, message: error instanceof Error ? error.message : String(error) });
