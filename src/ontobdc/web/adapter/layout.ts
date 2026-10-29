@@ -2,6 +2,7 @@ import { applyTranslations, onLocaleChange } from '@/ontobdc/shared/plugin/i18n'
 import { Config } from '@/ontobdc/shared/adapter/config';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { createAboutButton } from '@/ontobdc/shared/adapter/about-button';
+import { createFooterTools } from '@/ontobdc/shared/adapter/footer-tools';
 import { createTerminalPrompt } from '@/ontobdc/shared/adapter/terminal-prompt';
 import { createLanguageSwitcher } from '@/ontobdc/shared/adapter/language';
 import { createThemeSwitcher } from '@/ontobdc/shared/adapter/theme';
@@ -106,7 +107,8 @@ export function renderShell(app: HTMLElement): void {
   titlebarActions.append(languageSwitcher, createThemeSwitcher());
   app.querySelector<HTMLElement>('#version-status')!.append(createAboutButton());
   titlebar.append(titlebarActions);
-  llmPane.querySelector<HTMLElement>('.llm-footer')!.append(createTerminalPrompt());
+  // The tools of the addons are to the left of the terminal.
+  llmPane.querySelector<HTMLElement>('.llm-footer')!.append(...createFooterTools(), createTerminalPrompt());
 
   // Move the same elements so their state survives viewport changes: the container
   // name into the assistant header, and the ad slot below the assistant panel.

@@ -398,7 +398,9 @@
     font-size: 13px;
     line-height: 1.45;
     overflow-wrap: anywhere;
+    white-space: pre-line;
   }
+  .assistant-bubble[data-from="user"] { align-self: flex-end; max-width: 85%; background: var(--selection); border-color: transparent; color: var(--text-on-selection); border-radius: 14px 14px 4px 14px; }
 
   /* Image and PDF tabs: one file, as the browser renders it. */
   .document-viewer { position: relative; overflow: hidden; background: var(--surface); outline: none; }

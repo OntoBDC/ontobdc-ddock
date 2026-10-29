@@ -72,6 +72,39 @@ json.dumps({"code": exit_code, "stdout": output.getvalue(), "stderr": errors.get
 `;
 
 /**
+ * The commands that load most of what a command needs (the command modules, the graph library, the ontologies), run once
+ * where nothing is kept, so that the first command of the person does not pay for loading them.
+ */
+const WARMUP_COMMANDS: string[][] = [
+  ['infobim', 'project', '--list', '--json'],
+  ['infobim', 'annotate', '--list', '--json'],
+];
+const WARMUP_DIRECTORY = '/tmp/warmup';
+
+/** Runs the warm-up commands after the runtime starts, ahead of any command asked. What they answer is of no use, and what goes wrong in them is not told. */
+async function warmUp(python: PyodideAPI): Promise<void> {
+  python.FS.mkdirTree(WARMUP_DIRECTORY);
+  try {
+    for (const argv of WARMUP_COMMANDS) {
+      const args = python.toPy(argv);
+      python.globals.set('CWD', WARMUP_DIRECTORY);
+      python.globals.set('ARGV', args);
+      try {
+        await python.runPythonAsync(RUN_CLI);
+      } catch {
+        // Nothing to warm in what failed.
+      } finally {
+        args.destroy();
+        python.globals.delete('CWD');
+        python.globals.delete('ARGV');
+      }
+    }
+  } finally {
+    await discardDirectory(python, WARMUP_DIRECTORY);
+  }
+}
+
+/**
  * The folder of the container, kept in the runtime from one command to the next: it is read from disk
  * once, and then only what differs is carried in or out (see `MountSession`). One at a time; a command
  * for another folder replaces it.
@@ -244,6 +277,14 @@ async function discardDirectory(py: PyodideAPI, path: string): Promise<void> {
 self.onmessage = ({ data }: MessageEvent<PythonWorkerRequest>) => {
   if (data.type === 'start' && !runtime) {
     runtime = startPython();
+    // Commands asked meanwhile wait their turn behind it.
+    queue = queue.then(async () => {
+      try {
+        await warmUp(await runtime!);
+      } catch {
+        // The runtime failed to start: the commands say so.
+      }
+    });
     void runtime.catch((error: unknown) => {
       const message: PythonWorkerResponse = {
         type: 'failed', message: error instanceof Error ? error.message : String(error),

@@ -297,8 +297,8 @@ type CoreEvents = {
   /** The command was rejected before running, with the reason. */
   'presentation.main.command.invalid': { requestId: string; reason: string };
 
-  /** The assistant has a new message to show, such as the first-load welcome text. */
-  'presentation.assistant.message.sent': { text: string };
+  /** The assistant has a new message to show, such as the first-load welcome text; `from` is `user` when it is what the person said, in a dialog with it. */
+  'presentation.assistant.message.sent': { text: string; from?: 'user' };
 
   /** Requests the light or dark color theme; does not mean it has been applied. */
   'presentation.main.theme.change.requested': { theme: 'light' | 'dark' };

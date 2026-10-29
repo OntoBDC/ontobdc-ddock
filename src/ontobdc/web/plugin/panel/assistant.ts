@@ -40,7 +40,12 @@ export default function makeAssistant(): Mountable {
     const bubble = document.createElement('p');
     bubble.className = 'assistant-bubble';
     bubble.textContent = payload.text;
+    if (payload.from) bubble.dataset.from = payload.from;
     chat.appendChild(bubble);
+    // The newest message is the one in view: after the browser lays the bubble out, the panel goes to its end.
+    requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
+    });
   });
 
   return {

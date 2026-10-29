@@ -95,9 +95,8 @@
   ],
   "localWheels": [
     {
-      "file": "python/vendor/brasidatacenter-0.13.0-py3-none-any.whl",
-      "pypi": "brasidatacenter==0.13.0",
-      "sha256": "3373b47d9b97aa675f2436bc45ddf6fb20bde52f9d43bef2de24947a10a63d6c",
+      "file": "python/vendor/brasidatacenter-0.13.1-py3-none-any.whl",
+      "pypi": "brasidatacenter==0.13.1",
       "note": "Built from local brasidatacenter source."
     },
     {
