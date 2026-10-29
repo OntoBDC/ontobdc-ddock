@@ -95,14 +95,13 @@
   ],
   "localWheels": [
     {
-      "file": "python/vendor/brasidatacenter-0.13.1-py3-none-any.whl",
-      "pypi": "brasidatacenter==0.13.1",
+      "file": "python/vendor/brasidatacenter-0.14.0-py3-none-any.whl",
+      "pypi": "brasidatacenter==0.14.0",
       "note": "Built from local brasidatacenter source."
     },
     {
-      "file": "python/vendor/ontobdc-0.25.0-py3-none-any.whl",
-      "pypi": "ontobdc==0.25.0",
-      "sha256": "bf3f1252f15117f59000635bf30cb78a26e2cbd3e24ce446f11c435ca08d06ff",
+      "file": "python/vendor/ontobdc-0.26.0-py3-none-any.whl",
+      "pypi": "ontobdc==0.26.0",
       "note": "Built from local ontobdc source."
     }
   ]

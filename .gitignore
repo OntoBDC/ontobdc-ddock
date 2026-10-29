@@ -218,5 +218,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-src/public
+src/public/python
 src/node_modules
+src/addon

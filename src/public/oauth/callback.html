@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
+  <title>Authentication callback</title>
+</head>
+<body>
+  <p id="status">Completing sign-in…</p>
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+      const error = params.get('error');
+      window.history.replaceState(null, '', window.location.pathname);
+      if (!window.opener) {
+        document.getElementById('status').textContent = 'Return to the application and try signing in again.';
+        return;
+      }
+      if (!state || (!code && !error)) {
+        document.getElementById('status').textContent = 'Invalid authentication response.';
+        return;
+      }
+      window.opener.postMessage({
+        type: 'ontobdc.oauth.callback',
+        state,
+        ...(error ? { error } : { code }),
+      }, window.location.origin);
+      window.close();
+    })();
+  </script>
+</body>
+</html>
