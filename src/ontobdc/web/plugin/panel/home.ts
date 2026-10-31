@@ -1,4 +1,5 @@
 import { showRemoteContainers } from '@/ontobdc/shared/adapter/remote-container-dialog';
+import { failureParts, unwrapMachineError } from '@/ontobdc/shared/adapter/failure-text';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { applyTranslations, translate as t, type MessageKey } from '@/ontobdc/shared/plugin/i18n';
 import type { Mountable } from '@/ontobdc/shared/adapter/view';
@@ -122,10 +123,23 @@ export function makeHome(): Mountable {
     root.innerHTML = HOME_START_HTML;
     applyTranslations(root);
     if (error) {
-      const message = document.createElement('p');
-      message.className = 'home-create-error';
+      // A failure that lists its reasons is shown as a line and a list, one reason to an item.
+      const { summary, reasons } = failureParts(error);
+      const message = document.createElement('div');
+      message.className = 'home-create-error home-error';
       message.setAttribute('role', 'alert');
-      message.textContent = error;
+      const line = document.createElement('p');
+      line.textContent = summary;
+      message.append(line);
+      if (reasons.length > 0) {
+        const list = document.createElement('ul');
+        for (const reason of reasons) {
+          const item = document.createElement('li');
+          item.textContent = reason;
+          list.append(item);
+        }
+        message.append(list);
+      }
       root.append(message);
     }
     const newButton = root.querySelector<HTMLButtonElement>('.home-action[data-action="new"]');
@@ -234,7 +248,7 @@ export function makeHome(): Mountable {
         : reason === 'permission-denied' ? 'home.open.permissionDenied'
         : reason === 'crate-not-found' || reason === 'crate-invalid' || reason === 'location-not-found' ? 'home.open.invalidWorkspace'
         : reason === 'inspect-failed' ? 'home.open.inspectFailed' : 'home.open.readError';
-      const message = payload?.message ?? t(key);
+      const message = payload?.message ? unwrapMachineError(payload.message) : t(key);
       renderStart(t('home.open.error', { message }));
     }),
   ];

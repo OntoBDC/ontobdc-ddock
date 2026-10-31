@@ -133,7 +133,7 @@ export class LocalCommandExecutionMachine implements LocalCommandExecutionHandle
       requestId: this.requestId,
       state,
       etl: this.etl,
-      parameters: { requestId: this.request.requestId, command: this.request.command },
+      parameters: { requestId: this.request.requestId, command: this.request.command, container: this.request.container },
     });
   }
 

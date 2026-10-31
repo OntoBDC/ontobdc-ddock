@@ -151,6 +151,15 @@ async function run(request: Extract<PythonWorkerRequest, { type: 'run' }>): Prom
           session = new MountSession(mount.path, mount.handle, python.FS as unknown as RuntimeFs);
         }
         await session.refresh(commandForcesPull(argv));
+        if (mount.cwdFiles?.length) {
+          python.FS.mkdirTree(cwd);
+          for (const file of mount.cwdFiles) {
+            if (file.path.startsWith('/') || file.path.split('/').includes('..')) throw new Error('Invalid metadata path.');
+            const path = `${cwd}/${file.path}`;
+            python.FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+            python.FS.writeFile(path, new Uint8Array(file.data));
+          }
+        }
       } else {
         python.FS.mkdirTree(mount.path);
         for (const file of mount.files ?? []) {

@@ -15,7 +15,7 @@ export class CommandRunnableOnPyodideCapability {
     if (!argv) throw new Error('The command was not received.');
 
     const adapter: CommandExecutionAdapter = new PyodideCommandExecutionAdapter();
-    const result = await adapter.execute(context.parameters.requestId ?? '', context.parameters.command ?? '', argv);
+    const result = await adapter.execute(context.parameters.requestId ?? '', context.parameters.command ?? '', argv, context.parameters.container === 'none' ? 'none' : undefined);
     context.etl.write('local_command_execution', context.requestId, context.state, {
       phase: 'done',
       entity: { argv },

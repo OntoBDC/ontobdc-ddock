@@ -9,7 +9,8 @@ export abstract class CommandExecutionAdapter {
   /**
    * Runs the command. The adapter fills `success`: the caller and the machines
    * only read it. A run that did not work is a result with `success: false`;
-   * an error is for when the command could not run at all.
+   * an error is for when the command could not run at all. A command is run in the container that is open;
+   * with `container` as `none` it needs none, and runs in an empty directory when no container is open.
    */
-  abstract execute(requestId: string, command: string, argv: string[]): Promise<CommandExecutionResult>;
+  abstract execute(requestId: string, command: string, argv: string[], container?: 'none'): Promise<CommandExecutionResult>;
 }

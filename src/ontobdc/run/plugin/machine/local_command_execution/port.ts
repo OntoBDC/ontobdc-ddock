@@ -15,4 +15,6 @@ export type LocalCommandExecutionRequest = {
   requestId: string;
   /** The command as typed, such as `ontobdc container --refresh`. */
   command: string;
+  /** `none` for a command that needs no container (it reads only what the ontologies hold): it runs in an empty directory when none is open. */
+  container?: 'none';
 };

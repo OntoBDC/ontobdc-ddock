@@ -272,6 +272,10 @@
   .home-create-hint { margin: 0; color: var(--text-muted); font-size: 12px; }
   .home-create-error { margin: 0; color: var(--text-error); font-size: 12px; }
   .home-create-error[hidden] { display: none; }
+  .home-error { max-width: 960px; user-select: text; overflow-wrap: anywhere; }
+  .home-error p { margin: 0; font-weight: 600; }
+  .home-error ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+  .home-error li { line-height: 1.4; }
   .home-start ~ .home-create-error { margin-top: 24px; }
   .home-create-actions { display: flex; gap: 8px; }
   .home-create-actions button { height: 28px; padding: 0 12px; border: 1px solid var(--border-input); border-radius: 3px; background: var(--surface-button); color: var(--text-secondary); font-size: 13px; cursor: pointer; }
@@ -341,11 +345,12 @@
   .statusbar .about-button svg { width: 16px; height: 16px; }
   .about-menu { position: absolute; bottom: calc(100% + 6px); right: 0; z-index: 9999; min-width: 220px; padding: 4px; background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: 0 8px 24px var(--shadow); color: var(--text); font-size: 13px; }
   .about-menu[hidden] { display: none; }
-  .llm-footer { flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; height: 26px; padding: 0 6px; border-top: 1px solid var(--border); background: var(--surface-raised); }
-  .prompt { position: relative; display: inline-flex; }
+  /* The boxes of the buttons are placed from the footer, not from their buttons, so that every box ends where the footer does. */
+  .llm-footer { position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px; height: 26px; padding: 0 6px; border-top: 1px solid var(--border); background: var(--surface-raised); }
+  .prompt { display: inline-flex; }
   .llm-footer .prompt-button { width: 20px; height: 20px; padding: 2px; }
   .llm-footer .prompt-button svg { width: 16px; height: 16px; }
-  .prompt-box { position: absolute; bottom: calc(100% + 6px); right: 0; z-index: 9999; box-sizing: border-box; display: flex; align-items: stretch; width: 300px; max-width: calc(100vw - 24px); background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: 0 8px 24px var(--shadow); overflow: hidden; }
+  .prompt-box { position: absolute; bottom: calc(100% + 6px); right: 6px; z-index: 9999; box-sizing: border-box; display: flex; align-items: stretch; width: 300px; max-width: calc(100vw - 24px); background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: 0 8px 24px var(--shadow); overflow: hidden; }
   .prompt-box[hidden] { display: none; }
   .prompt-box:focus-within { border-color: var(--text-link); }
   .prompt-input { flex: 1 1 auto; min-width: 0; box-sizing: border-box; padding: 6px 8px; resize: none; border: 0; background: transparent; color: var(--text); font: 13px/1.4 var(--font-mono, ui-monospace, monospace); outline: none; }

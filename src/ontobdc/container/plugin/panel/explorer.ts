@@ -1,4 +1,5 @@
 import { createActionMenu, runAction, type ActionMenuTable } from '@/ontobdc/shared/adapter/action-menu';
+import { activePanelId, describePanel } from '@/ontobdc/shared/adapter/active-panel';
 import { EntityRepository } from '@/ontobdc/shared/adapter/entity-repository';
 import { tagNodesOf } from '@/ontobdc/shared/adapter/entity-tags';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
@@ -128,6 +129,36 @@ export default function makeExplorer(): Mountable {
     else moreMenu.show(anchor, ITEM_MENU[group], node.entity ?? { item });
   };
 
+  /** What the tab that is active in the surface shows, as far as the explorer lists it: a file by its path, an entity by its global id. */
+  let shown: { path?: string; entityId?: string } = {};
+
+  /**
+   * Marks, in the tree, what the active tab shows: the file in the files, the entity wherever it is listed. A tab that
+   * shows none of them marks nothing. With `reveal`, the directories that hold what is marked are opened, so that it is seen.
+   */
+  const markShown = (reveal: boolean): void => {
+    root.querySelectorAll('.tree-node.tab-active').forEach((node) => node.classList.remove('tab-active'));
+    const rows: HTMLElement[] = shown.entityId !== undefined
+      ? [...root.querySelectorAll<HTMLElement>('.tree-node[data-entity]')].filter((row) => row.dataset.entity === shown.entityId)
+      : shown.path !== undefined
+        ? [...(groupBodies.get('files')?.querySelectorAll<HTMLElement>('.tree-node.file') ?? [])].filter((row) => row.dataset.path === shown.path)
+        : [];
+    for (const row of rows) {
+      row.classList.add('tab-active');
+      if (!reveal) continue;
+      for (let list = row.closest<HTMLElement>('.tree-children'); list; list = list.parentElement?.closest<HTMLElement>('.tree-children') ?? null) {
+        list.hidden = false;
+        list.parentElement?.setAttribute('aria-expanded', 'true');
+      }
+    }
+  };
+
+  const show = (id: string | null): void => {
+    const { kind, entityId, path } = id === null ? { kind: 'other' as const, entityId: undefined, path: undefined } : describePanel(id);
+    shown = kind === 'entity' ? { entityId } : kind === 'file' ? { path } : {};
+    markShown(true);
+  };
+
   const select = (row: HTMLLIElement): void => {
     if (selectedRow && selectedRow !== row) selectedRow.classList.remove('selected');
     row.classList.add('selected');
@@ -153,6 +184,7 @@ export default function makeExplorer(): Mountable {
       const item = document.createElement('li');
       item.className = isDirectory ? 'tree-node dir' : 'tree-node file';
       item.dataset.path = path;
+      if (node.entity) item.dataset.entity = node.entity.id;
       item.setAttribute('role', 'treeitem');
       if (isDirectory) item.setAttribute('aria-expanded', 'false');
 
@@ -247,6 +279,8 @@ export default function makeExplorer(): Mountable {
     } else {
       body.replaceChildren(renderNodes(nodes, group, '', 0));
     }
+    // The tree was drawn again: what the active tab shows is marked in it again.
+    markShown(true);
   };
 
   const historyView = createHistoryView(SOURCE);
@@ -328,6 +362,10 @@ export default function makeExplorer(): Mountable {
     // The tags come from the entities the container holds: they are drawn again whenever those are read.
     eventBus.subscribe('presentation.container.entities.found', renderTags),
     eventBus.subscribe('presentation.container.entity.found', renderTags),
+    // What the tab that becomes active shows is marked in the tree, so that it is there when the person comes back to the explorer.
+    eventBus.subscribe('presentation.main.panel.activated', ({ payload }) => {
+      if (payload?.container === 'surface') show(payload.id);
+    }),
     // Translate in place so populated trees and the selection survive a locale switch.
     onLocaleChange(() => {
       applyTranslations(root);
@@ -336,6 +374,9 @@ export default function makeExplorer(): Mountable {
       });
     }),
   ];
+
+  // A tab may already be active by the time the panel mounts.
+  show(activePanelId());
 
   // A container may already be open by the time the panel mounts; ask for the
   // current state so the panel does not stay locked forever.

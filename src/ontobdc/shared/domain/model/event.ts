@@ -191,8 +191,8 @@ type CoreEvents = {
 
   /** A tab was removed by Dockview, through the UI or its panel removal API. */
   'presentation.main.panel.closed': PanelClosedPayload;
-  /** The active tab of a container changed; `id` is null when no tab is left, `kind` says what the tab shows and `entityId` is the global id of the entity of an entity tab. */
-  'presentation.main.panel.activated': { container: string; id: string | null; kind: 'entity' | 'entity-new' | 'table' | 'tag' | 'other'; entityId?: string };
+  /** The active tab of a container changed; `id` is null when no tab is left, `kind` says what the tab shows and `entityId` is the global id of the entity of an entity tab and `path` the path in the container of the file of a file tab. */
+  'presentation.main.panel.activated': { container: string; id: string | null; kind: 'entity' | 'entity-new' | 'table' | 'tag' | 'file' | 'other'; entityId?: string; path?: string };
   /** Ask a container to mount a registered panel; existing ids are reused. */
   'presentation.main.panel.open.requested': {
     container: string;
@@ -289,7 +289,7 @@ type CoreEvents = {
   'presentation.container.refresh.completed': { requestId: string };
 
   /** A command was requested; the terminal shows it and the run listener executes it. */
-  'presentation.main.command.requested': { requestId: string; command: string };
+  'presentation.main.command.requested': { requestId: string; command: string; container?: 'none' };
   /** The command ran and worked; carries the result, matched by requestId. */
   'presentation.main.code.success': { requestId: string; result: CommandExecutionResult };
   /** The command could not run or did not work; result is null when nothing ran. */

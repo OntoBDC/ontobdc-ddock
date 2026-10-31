@@ -15,9 +15,10 @@ export function quoted(value: string): string {
 /**
  * Asks for a command to be run, through the event bus, and waits for its answer:
  * the result when it worked; an error when it failed or the line was invalid.
- * The answer is recognized by the request id, so other commands are not mistaken for it.
+ * The answer is recognized by the request id, so other commands are not mistaken for it. `container: 'none'` says the
+ * command needs no container: it runs in an empty directory when none is open.
  */
-export function requestCommand(command: string, source: string): Promise<CommandExecutionResult> {
+export function requestCommand(command: string, source: string, options: { container?: 'none' } = {}): Promise<CommandExecutionResult> {
   const requestId = crypto.randomUUID();
   return new Promise<CommandExecutionResult>((resolve, reject) => {
     const stop = (): void => unsubscribe.forEach((dispose) => dispose());
@@ -39,7 +40,7 @@ export function requestCommand(command: string, source: string): Promise<Command
       }),
     ];
     try {
-      eventBus.publish('presentation.main.command.requested', source, { requestId, command });
+      eventBus.publish('presentation.main.command.requested', source, { requestId, command, ...options });
     } catch (error) {
       stop();
       reject(error);

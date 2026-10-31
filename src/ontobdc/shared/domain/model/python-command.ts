@@ -7,8 +7,10 @@ export type PythonMount = {
    */
   cwd?: string;
   handle?: FileSystemDirectoryHandle;
-  /** Read-only fallback: metadata copied into memory, never written back. */
+  /** Read-only fallback: metadata copied into memory under `path`, never written back. */
   files?: { path: string; data: ArrayBuffer }[];
+  /** Read-only fallback: metadata copied into memory under `cwd`, never written back. */
+  cwdFiles?: { path: string; data: ArrayBuffer }[];
 };
 
 export type PythonCommandRequest = {

@@ -1,11 +1,15 @@
 services:
   obdc-ddock:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: ../src
+      dockerfile: ../docker/Dockerfile
+      # The manifests of the addons the checkout has, from up.sh; the context is src, so
+      # each one is the path of its addon in there.
+      args:
+        ADDON_MANIFESTS: "${ADDON_MANIFESTS:-}"
     container_name: obdc-ddock
     ports:
-      - "${DDOCK_PORT:-5173}:5173"
+      - "${DDOCK_PORT:-5172}:5172"
     volumes:
       - ../src:/app
       - /app/node_modules
@@ -14,7 +18,7 @@ services:
       # To build them from local checkouts, add docker/docker-compose.sources.yml.
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${DDOCK_PORT:-5172}').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
       interval: 2s
       timeout: 2s
       retries: 30
