@@ -97,6 +97,8 @@ export const ptBR: Messages = {
   'explorer.menu.shortcut.delete': 'Del',
   'notice.file.rename.failed': "Não foi possível renomear o arquivo: {message}",
   'notice.file.delete.failed': "Não foi possível excluir o arquivo: {message}",
+  'notice.command.read.failed': "Um comando precisou do conteúdo de um arquivo que não foi lido do disco. Atualize a pasta (refresh) e tente de novo.",
+  'notice.container.folder.picked': "Lendo “{name}”… o projeto estará disponível em instantes.",
   'notice.file.relate.failed': "Não foi possível relacionar o arquivo: {message}",
   'notice.file.relate.no_entity': "Abra a aba de uma entidade para relacionar o arquivo a ela.",
   'notice.file.relate.no_documents': "A entidade não tem campo de documentos para relacionar o arquivo.",

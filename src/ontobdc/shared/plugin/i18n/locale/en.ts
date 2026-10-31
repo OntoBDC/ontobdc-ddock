@@ -93,6 +93,8 @@ export const en = {
   'explorer.menu.shortcut.delete': 'Del',
   'notice.file.rename.failed': "Could not rename the file: {message}",
   'notice.file.delete.failed': "Could not delete the file: {message}",
+  'notice.command.read.failed': "A command needed the content of a file that was not read from disk. Read the folder again (refresh) and try once more.",
+  'notice.container.folder.picked': "Reading “{name}”… the project will be available in a few moments.",
   'notice.file.relate.failed': "Could not relate the file: {message}",
   'notice.file.relate.no_entity': "Open an entity tab to relate the file to it.",
   'notice.file.relate.no_documents': "The entity has no field of documents to relate the file to.",

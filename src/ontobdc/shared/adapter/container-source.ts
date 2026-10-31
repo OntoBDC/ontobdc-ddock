@@ -2,7 +2,7 @@ import { ContainerFileRepository } from '@/ontobdc/shared/adapter/container-file
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { runPythonCommand } from '@/ontobdc/shared/adapter/command';
 import {
-  CONTAINER_FILE_PATH, containerLocation, crateFilePaths, InvalidCrateError,
+  crateFilePaths, InvalidCrateError,
   parseCliResponse, pathsToTree, unwrapCliText,
 } from '@/ontobdc/shared/adapter/container-format';
 import type { ContainerInspection, ContainerOpened } from '@/ontobdc/shared/domain/model/container';
@@ -11,6 +11,8 @@ import type { PythonMount } from '@/ontobdc/shared/domain/model/python-command';
 
 const CRATE_PATH = '.__ontobdc__/ro-crate-metadata.json';
 const INSPECT_ARGV: string[] = ['ontobdc', 'container', '--inspect', '--json'];
+/** Where the runtime keeps what the browser mounts. */
+const RUNTIME_STORAGE = '/storage';
 
 /** The browser directory picker, as `window.showDirectoryPicker`. */
 export type DirectoryPickerOptions = { mode: 'readwrite'; id: string; startIn?: FileSystemHandle };
@@ -21,6 +23,11 @@ export type ContainerSource = {
   name: string;
   access: 'readwrite' | 'read';
   folder?: FileSystemDirectoryHandle;
+  /**
+   * Where the container is mounted in the runtime when its metadata says nowhere: the metadata of a
+   * container does not state where it is (it can be moved or copied), so the place is the runtime's.
+   */
+  location: string;
   read(path: string): Promise<File | null>;
   mount(path: string): Promise<PythonMount>;
 };
@@ -30,32 +37,32 @@ const isDomError = (error: unknown, name: string): boolean => error instanceof D
 
 /** The picked directory as a container source: writable, and mounted by its handle. */
 export function directorySource(handle: FileSystemDirectoryHandle): ContainerSource {
-  return sourceOf(handle, handle);
+  return sourceOf(handle, handle, `${RUNTIME_STORAGE}/${handle.name}`);
 }
 
 /** Keep the storage index mounted when inspecting a newly created container from its root. */
 export function workspaceContainerSource(container: FileSystemDirectoryHandle, root: FileSystemDirectoryHandle): ContainerSource {
   return {
-    ...sourceOf(container, container),
+    ...sourceOf(container, container, `${RUNTIME_STORAGE}/${root.name}/${container.name}`),
     mount: async (path: string) => ({ path: parentDirectoryOf(path), handle: root }),
   };
 }
 
-function sourceOf(handle: FileSystemDirectoryHandle, folder: FileSystemDirectoryHandle): ContainerSource {
+function sourceOf(handle: FileSystemDirectoryHandle, folder: FileSystemDirectoryHandle, location: string): ContainerSource {
   return {
     name: handle.name,
     access: 'readwrite',
     folder,
+    location,
     read: (path) => ContainerFileRepository.of(handle).file(path),
     mount: async (path) => ({ path, handle }),
   };
 }
 
 /**
- * Reads the container the source points at. Its RO-Crate lists its parts and
- * `.__ontobdc__/container.ttl` states where it was registered; the source is
- * mounted so the container appears at exactly that location before the CLI
- * runs, because the CLI checks where it was registered. A workspace source
+ * Reads the container the source points at. Its RO-Crate lists its parts; the source is
+ * mounted where the runtime keeps what the browser mounts, so the container appears at the same place
+ * the steps that opened the workspace put it. A workspace source
  * also mounts the enclosing storage root and its index.
  *
  * Publishes `inspect.started` when the inspection begins, `files.found` and
@@ -69,17 +76,16 @@ export async function openContainer(source: ContainerSource, sourceId: string): 
   };
 
   let paths: string[];
-  let location: string | null;
   try {
     const crate = await source.read(CRATE_PATH);
     if (!crate) return failed('crate-not-found', source.name);
     paths = crateFilePaths(await crate.text());
-    const metadata = await source.read(CONTAINER_FILE_PATH);
-    location = metadata ? containerLocation(await metadata.text()) : null;
   } catch (error) {
     return failed(error instanceof InvalidCrateError ? 'crate-invalid' : isDomError(error, 'NotAllowedError') ? 'permission-denied' : 'read-error', source.name, error);
   }
-  if (!location) return failed('location-not-found', source.name);
+  // Where the container is mounted is the runtime's to say: its metadata does not state where it is (the container can be
+  // moved or copied), and the locations an older version wrote in it are the ones of other machines, and of its datasets.
+  const location = source.location;
 
   eventBus.publish('presentation.container.inspect.started', sourceId, { name: source.name });
   try {

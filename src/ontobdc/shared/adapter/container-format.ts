@@ -135,28 +135,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 /** Metadata of an OntoBDC container, as its `.__ontobdc__/container.ttl` states it. */
 export const CONTAINER_FILE_PATH = '.__ontobdc__/container.ttl';
 
-const AT_LOCATION = /(?:prov:atLocation|<http:\/\/www\.w3\.org\/ns\/prov#atLocation>)\s+<(file:[^>]+)>/g;
-
-/**
- * Returns the absolute path the container was registered at. The CLI checks
- * that a container still lives where it was registered, so the browser mounts
- * the picked directory at exactly this path before running it. The container
- * is the shortest location stated; its datasets live below it.
- */
-export function containerLocation(turtle: string): string | null {
-  const paths = [...turtle.matchAll(AT_LOCATION)]
-    .map((match) => {
-      try {
-        return decodeURIComponent(new URL(match[1]).pathname).replace(/\/+$/, '');
-      } catch {
-        return '';
-      }
-    })
-    .filter(Boolean);
-  if (paths.length === 0) return null;
-  return paths.reduce((shortest, path) => (path.length < shortest.length ? path : shortest));
-}
-
 type CliResponse<Content> = { content: Content };
 
 /** Parses a CLI JSON answer, or returns null when stdout is not one. */

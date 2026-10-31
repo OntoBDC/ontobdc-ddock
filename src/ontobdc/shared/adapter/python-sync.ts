@@ -1,5 +1,11 @@
 /** One entry of the mounted folder, by its path relative to the mount. */
-export type FolderEntry = { kind: 'file' | 'dir'; mtime: number; size: number };
+export type FolderEntry = {
+  kind: 'file' | 'dir';
+  mtime: number;
+  size: number;
+  /** Size and time are what the crate of the container says, not what the disk was asked: the file is not read until a command needs it. */
+  stub?: boolean;
+};
 
 /** The mounted folder's entries, by path relative to the mount (`a/b.txt`). */
 export type FolderListing = Map<string, FolderEntry>;
@@ -76,7 +82,10 @@ export function planPull(seen: FolderListing, found: FolderListing): PullPlan {
     const before = seen.get(path);
     if (entry.kind === 'dir') {
       if (before?.kind !== 'dir') createDirs.push(path);
-    } else if (before?.kind !== 'file' || before.mtime !== entry.mtime || before.size !== entry.size) {
+    } else if (entry.stub && before?.kind === 'file') {
+      // What the crate says is not a reason to read the file again, and says nothing of a change on disk.
+      continue;
+    } else if (before?.kind !== 'file' || before.stub || before.mtime !== entry.mtime || before.size !== entry.size) {
       load.push(path);
     }
   }

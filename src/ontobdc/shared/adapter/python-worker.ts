@@ -105,6 +105,54 @@ async function warmUp(python: PyodideAPI): Promise<void> {
 }
 
 /**
+ * The file system of the runtime as the mount session works on it, with the files whose content stays on disk: the
+ * file is made in the runtime with its size and time, and the runtime asks for what it reads (`read`), a piece at a time.
+ * What the runtime tries to write to such a file is refused.
+ */
+function runtimeFs(python: PyodideAPI): RuntimeFs {
+  const fs = python.FS as unknown as RuntimeFs & {
+    lookupPath(path: string): { node: { usedBytes: number; timestamp: number; stream_ops: Record<string, unknown> } };
+    ErrnoError: new (errno: number) => Error;
+  };
+  return {
+    readdir: (path) => fs.readdir(path),
+    stat: (path) => fs.stat(path),
+    isDir: (mode) => fs.isDir(mode),
+    mkdirTree: (path) => fs.mkdirTree(path),
+    readFile: (path) => fs.readFile(path),
+    writeFile: (path, data) => fs.writeFile(path, data),
+    unlink: (path) => fs.unlink(path),
+    rmdir: (path) => fs.rmdir(path),
+    utime: (path, atime, mtime) => fs.utime(path, atime, mtime),
+    lazyFile: (path, size, mtime, read) => {
+      // An empty file of the runtime, whose size is told and whose bytes come from disk.
+      fs.writeFile(path, new Uint8Array(0));
+      const { node } = fs.lookupPath(path);
+      node.usedBytes = size;
+      node.timestamp = mtime;
+      const refused = (): never => { throw new fs.ErrnoError(13); };
+      node.stream_ops = {
+        ...node.stream_ops,
+        read: (_stream: unknown, buffer: Uint8Array, offset: number, length: number, position: number): number => {
+          if (position >= size) return 0;
+          let bytes: Uint8Array;
+          try {
+            bytes = read(position, Math.min(length, size - position));
+          } catch {
+            throw new fs.ErrnoError(5);
+          }
+          buffer.set(bytes, offset);
+          return bytes.length;
+        },
+        write: refused,
+        allocate: refused,
+        mmap: refused,
+      };
+    },
+  };
+}
+
+/**
  * The folder of the container, kept in the runtime from one command to the next: it is read from disk
  * once, and then only what differs is carried in or out (see `MountSession`). One at a time; a command
  * for another folder replaces it.
@@ -148,7 +196,7 @@ async function run(request: Extract<PythonWorkerRequest, { type: 'run' }>): Prom
           if ((python.FS.readdir(mount.path) as string[]).some((name) => name !== '.' && name !== '..')) {
             throw new Error('The registered container location conflicts with the runtime filesystem.');
           }
-          session = new MountSession(mount.path, mount.handle, python.FS as unknown as RuntimeFs);
+          session = new MountSession(mount.path, mount.handle, runtimeFs(python));
         }
         await session.refresh(commandForcesPull(argv));
         if (mount.cwdFiles?.length) {
@@ -181,8 +229,8 @@ async function run(request: Extract<PythonWorkerRequest, { type: 'run' }>): Prom
       throw error;
     } finally {
       args.destroy();
-      python.globals.delete('CWD');
-      python.globals.delete('ARGV');
+      // They are not there when the command did not get to run: the error that stopped it must not be hidden by this.
+      for (const name of ['CWD', 'ARGV']) if (python.globals.has(name)) python.globals.delete(name);
       if (!mount.handle) {
         // Discard copied metadata so another container never inherits stale files.
         await discardDirectory(python, mount.path);

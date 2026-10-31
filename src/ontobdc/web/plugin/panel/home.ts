@@ -234,6 +234,7 @@ export function makeHome(): Mountable {
       if (!failure) return;
       renderForm(t('home.create.error', { message: failure.message }));
     }),
+    eventBus.subscribe('presentation.container.folder.picked', () => renderLoading('home.loading.workspace')),
     eventBus.subscribe('presentation.container.inspect.started', () => renderLoading('home.loading.workspace')),
     eventBus.subscribe('presentation.python.ready', () => updatePython(true)),
     eventBus.subscribe('presentation.user.login.succeeded', () => {

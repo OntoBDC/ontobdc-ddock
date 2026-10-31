@@ -1,3 +1,4 @@
+import { ContainerFileRepository } from '@/ontobdc/shared/adapter/container-file-repository';
 import { runPythonCommand } from '@/ontobdc/shared/adapter/command';
 import { cliError } from '@/ontobdc/container/plugin/capability/transformation/storage';
 import { parseCliResponse } from '@/ontobdc/shared/adapter/container-format';
@@ -93,7 +94,7 @@ export class StorageRoot {
 
   /** Whether the listing of the root has a container whose folder is called `name`. */
   async hasContainer(name: string): Promise<boolean> {
-    const containers = await StorageRoot.listIn(await this.mount());
+    const containers = await StorageRoot.listIn(await this.mount(false, false));
     return (containers ?? []).some((entry) => entry.location?.replace(/\/+$/, '').split('/').pop() === name);
   }
 
@@ -129,14 +130,14 @@ export class StorageRoot {
 
   /** Whether Python finds a root of the workspace in the folder as it is mounted now. */
   async isOk(): Promise<boolean> {
-    return StorageRoot.existsInPython(await this.mount());
+    return StorageRoot.existsInPython(await this.mount(false, false));
   }
 
   /** Asks Python to run `ontobdc init` in the root. */
   async initialize(): Promise<void> {
     let init: PythonCommandResult;
     try {
-      init = await runPythonCommand('container', INIT_ARGV, await this.mount());
+      init = await runPythonCommand('container', INIT_ARGV, await this.mount(false, false));
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : String(error), { cause: error });
     }
@@ -189,11 +190,16 @@ export class StorageRoot {
     return this.rootRecord()?.folder;
   }
 
-  /** Where the CLI sees the root: the folder picked, or else the place Python found it by itself. */
-  async mount(includeVirtualRootMetadata = false): Promise<PythonMount> {
+  /**
+   * Where the CLI sees the root: the folder picked, or else the place Python found it by itself. A root that is the directory
+   * above the folder is only in Python, and a command that asks of it alone (is there a root, make it, which containers it
+   * lists) needs none of the folder: `withFolder` false leaves it out, so the folder is not carried into the runtime for it.
+   */
+  async mount(includeVirtualRootMetadata = false, withFolder = true): Promise<PythonMount> {
     const folder = this.folder();
     if (!folder) return { path: ROOT_PATH };
     const above = this.rootRecord()?.above;
+    if (above && !withFolder) return { path: `${ROOT_PATH}/${folder.name}`, cwd: ROOT_PATH };
     return above
       ? {
         path: `${ROOT_PATH}/${folder.name}`,
@@ -222,9 +228,7 @@ export class StorageRoot {
 
   private async readContainerMetadata(folder: FileSystemDirectoryHandle): Promise<string | null> {
     try {
-      const metadataDirectory: FileSystemDirectoryHandle = await folder.getDirectoryHandle(METADATA_DIRECTORY);
-      const metadataFile: FileSystemFileHandle = await metadataDirectory.getFileHandle(CONTAINER_METADATA_FILE);
-      return await (await metadataFile.getFile()).text();
+      return await ContainerFileRepository.of(folder).text(`${METADATA_DIRECTORY}/${CONTAINER_METADATA_FILE}`);
     } catch {
       return null;
     }

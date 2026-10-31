@@ -11,6 +11,77 @@ export interface RuntimeFs {
   unlink(path: string): void;
   rmdir(path: string): void;
   utime(path: string, atime: number, mtime: number): void;
+  /**
+   * A file of `size` bytes whose content is not in the runtime: `read` brings it from where it is when the runtime
+   * asks for it (a position and a length), and what the runtime tries to write to it is refused. Without this the
+   * session copies every file in.
+   */
+  lazyFile?(path: string, size: number, mtime: number, read: (position: number, length: number) => Uint8Array): void;
+}
+
+/**
+ * Below this size a file is copied into the runtime: a small file is read in whole, often more than once, and costs
+ * little to carry. From this size on, one that the runtime only reads is left on disk and read when it is opened.
+ */
+export const LAZY_MIN_BYTES = 256 * 1024;
+
+/** The metadata of a container and of a dataset, and the data of a dataset, are read and written by the runtime: they are copied in. */
+const METADATA_DIRECTORY = '.__ontobdc__';
+const DATASET_MARKERS = [`${METADATA_DIRECTORY}/dataset.ttl`, `${METADATA_DIRECTORY}/nid.ttl`, 'linkset/datapackage.json'];
+
+/** The directories (by path, '' for the folder itself) that are datasets, from the paths of what is in the folder. */
+function datasetDirectories(paths: Iterable<string>): Set<string> {
+  const found = new Set<string>();
+  for (const path of paths) {
+    const marker = DATASET_MARKERS.find((candidate) => path === candidate || path.endsWith(`/${candidate}`));
+    if (marker) found.add(path.slice(0, Math.max(0, path.length - marker.length - 1)));
+  }
+  return found;
+}
+
+/** Reads `length` bytes of the file from `position`, in the worker, where the runtime asks synchronously. */
+function readSlice(file: Blob, position: number, length: number): Uint8Array {
+  const Reader = (globalThis as unknown as { FileReaderSync?: new () => { readAsArrayBuffer(blob: Blob): ArrayBuffer } }).FileReaderSync;
+  if (!Reader) throw new Error('A file cannot be read from disk while the runtime asks for it: FileReaderSync is not there.');
+  return new Uint8Array(new Reader().readAsArrayBuffer(file.slice(position, position + length)));
+}
+
+const CRATE_PATH = [METADATA_DIRECTORY, 'ro-crate-metadata.json'];
+
+/** `2026-10-22T17:26:32.161759Z` as milliseconds: the crate keeps microseconds, the disk milliseconds. */
+function crateTime(text: unknown): number | null {
+  const match = typeof text === 'string' ? /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/.exec(text) : null;
+  if (!match) return null;
+  const millis = (match[2] ?? '').padEnd(3, '0').slice(0, 3);
+  const time = Date.parse(`${match[1]}.${millis}${match[3]}`);
+  return Number.isNaN(time) ? null : time;
+}
+
+/** What the crate of the container knows of the files that are live: their size and time, by path. */
+export function indexOfCrate(text: string): Map<string, { size: number; mtime: number }> {
+  const index = new Map<string, { size: number; mtime: number }>();
+  let graph: unknown;
+  try {
+    graph = (JSON.parse(text) as { '@graph'?: unknown })['@graph'];
+  } catch {
+    return index;
+  }
+  if (!Array.isArray(graph)) return index;
+  for (const node of graph as Array<{ fileHistory?: unknown }>) {
+    if (!Array.isArray(node?.fileHistory)) continue;
+    const last = new Map<string, { size: unknown; time: number | null; ended: boolean }>();
+    for (const entry of node.fileHistory as Array<Record<string, unknown>>) {
+      if (typeof entry?.relativePath !== 'string') continue;
+      const time = crateTime(entry.timestamp);
+      const before = last.get(entry.relativePath);
+      if (before && time !== null && before.time !== null && time < before.time) continue;
+      last.set(entry.relativePath, { size: entry.contentSize, time, ended: entry.missingSince !== undefined });
+    }
+    for (const [path, { size, time, ended }] of last) {
+      if (!ended && time !== null && typeof size === 'number' && size >= 0) index.set(path, { size, mtime: time });
+    }
+  }
+  return index;
 }
 
 /** How many files of the folder on disk are read at the same time. */
@@ -54,6 +125,10 @@ export class MountSession {
   private everything = true;
   private readonly hinted = new Set<string>();
   private lastFullPull = 0;
+  /** The files the last look found, by path: the ones to load are read from them, without asking the folder again. */
+  private readonly found = new Map<string, File>();
+  /** What the crate says of the files, for the look in progress; empty when it is not asked for. */
+  private crate = new Map<string, { size: number; mtime: number }>();
 
   constructor(
     readonly path: string,
@@ -87,7 +162,8 @@ export class MountSession {
       // A look at everything was done a moment ago: the next one would find nothing new.
       const justLooked = !force && this.lastFullPull > 0 && this.now() - this.lastFullPull < 1000;
       if (!justLooked) {
-        await this.pull('');
+        // Only a look that is asked for reads the files on disk; any other takes what the crate of the container says of them.
+        await this.pull('', !force);
         this.lastFullPull = this.now();
       }
       this.everything = false;
@@ -99,9 +175,13 @@ export class MountSession {
     for (const path of paths) await this.pull(path);
   }
 
-  /** Carries into the copy what differs on disk, at `sub` and below it (the whole folder when empty). */
-  async pull(sub: string): Promise<void> {
-    const found = await this.look(sub);
+  /**
+   * Carries into the copy what differs on disk, at `sub` and below it (the whole folder when empty). With
+   * `metadataOnly`, a file the crate of the container knows is made from what the crate says of it, without
+   * asking the disk for it: its content is not there to be read.
+   */
+  async pull(sub: string, metadataOnly = false): Promise<void> {
+    const found = await this.look(sub, metadataOnly && sub === '');
     const seen: FolderListing = new Map([...this.remote].filter(([path]) => underneath(path, sub)));
     const plan = planPull(seen, found);
 
@@ -115,13 +195,29 @@ export class MountSession {
       }
     }
     for (const path of plan.createDirs) this.fs.mkdirTree(`${this.path}/${path}`);
+    const datasets = datasetDirectories([...this.remote.keys(), ...found.keys()]);
     await inBatches(plan.load, async (path) => {
-      const file = await (await this.fileHandle(path)).getFile();
-      const data = new Uint8Array(await file.arrayBuffer());
       this.fs.mkdirTree(`${this.path}/${dirname(path)}`);
-      this.fs.writeFile(`${this.path}/${path}`, data);
+      const entry = found.get(path);
+      if (entry?.stub && this.fs.lazyFile) {
+        this.drop(`${this.path}/${path}`);
+        this.fs.lazyFile(`${this.path}/${path}`, entry.size, entry.mtime, () => { throw new Error('The content of the file was not read from disk.'); });
+        this.fs.utime(`${this.path}/${path}`, entry.mtime, entry.mtime);
+        return;
+      }
+      const file = this.found.get(path) ?? await (await this.fileHandle(path)).getFile();
+      if (this.fs.lazyFile && file.size >= LAZY_MIN_BYTES && !this.copied(path, datasets)) {
+        // The runtime only reads it: it stays on disk, and is read from there when it is opened.
+        this.drop(`${this.path}/${path}`);
+        this.fs.lazyFile(`${this.path}/${path}`, file.size, file.lastModified, (position, length) => readSlice(file, position, length));
+      } else {
+        // What stood there as a file kept on disk (or described by the crate) refuses to be written: it is made again.
+        this.drop(`${this.path}/${path}`);
+        this.fs.writeFile(`${this.path}/${path}`, new Uint8Array(await file.arrayBuffer()));
+      }
       this.fs.utime(`${this.path}/${path}`, file.lastModified, file.lastModified);
     });
+    this.found.clear();
 
     for (const path of plan.remove) { this.remote.delete(path); this.local.delete(path); }
     for (const [path, entry] of found) this.remote.set(path, entry);
@@ -176,10 +272,24 @@ export class MountSession {
   }
 
   /** What `sub` is on disk, and what is under it when it is a directory; nothing when it is not there. */
-  private async look(sub: string): Promise<FolderListing> {
+  private async look(sub: string, fromCrate = false): Promise<FolderListing> {
     const found: FolderListing = new Map();
+    this.found.clear();
+    this.crate = fromCrate ? await this.readCrate() : new Map();
     if (sub === '') {
-      await this.walk(this.handle, '', found);
+      const pending: Array<{ path: string; handle: FileSystemFileHandle }> = [];
+      await this.walk(this.handle, '', found, pending);
+      const datasets = datasetDirectories(pending.map(({ path }) => path));
+      const stubbed = ({ path }: { path: string }): boolean => this.crate.has(path) && !this.copied(path, datasets);
+      for (const item of pending.filter(stubbed)) {
+        const known = this.crate.get(item.path)!;
+        found.set(item.path, { kind: 'file', mtime: known.mtime, size: known.size, stub: true });
+      }
+      await inBatches(pending.filter((item) => !stubbed(item)), async ({ path, handle }) => {
+        const file = await handle.getFile();
+        found.set(path, { kind: 'file', mtime: file.lastModified, size: file.size });
+        this.found.set(path, file);
+      });
       return found;
     }
     const segments = sub.split('/');
@@ -193,18 +303,36 @@ export class MountSession {
     try {
       const file = await (await parent.getFileHandle(name)).getFile();
       found.set(sub, { kind: 'file', mtime: file.lastModified, size: file.size });
+      this.found.set(sub, file);
       return found;
     } catch { /* not a file */ }
     try {
       const directory = await parent.getDirectoryHandle(name);
       found.set(sub, { kind: 'dir', mtime: 0, size: 0 });
-      await this.walk(directory, sub, found);
+      const pending: Array<{ path: string; handle: FileSystemFileHandle }> = [];
+      await this.walk(directory, sub, found, pending);
+      await inBatches(pending, async ({ path, handle }) => {
+        const file = await handle.getFile();
+        found.set(path, { kind: 'file', mtime: file.lastModified, size: file.size });
+        this.found.set(path, file);
+      });
     } catch { /* not there */ }
     return found;
   }
 
-  private async walk(directory: FileSystemDirectoryHandle, prefix: string, into: FolderListing): Promise<void> {
-    const files: Array<{ path: string; handle: FileSystemFileHandle }> = [];
+  /** What the crate of the container says of its files; nothing when there is no crate or it cannot be read. */
+  private async readCrate(): Promise<Map<string, { size: number; mtime: number }>> {
+    try {
+      const directory = await directoryAt(this.handle, CRATE_PATH.slice(0, -1), false);
+      const file = await (await directory.getFileHandle(CRATE_PATH[CRATE_PATH.length - 1])).getFile();
+      return indexOfCrate(await file.text());
+    } catch {
+      return new Map();
+    }
+  }
+
+  /** Lists what is in `directory`: the directories go in `into`, and the files wait in `files` to be asked for. */
+  private async walk(directory: FileSystemDirectoryHandle, prefix: string, into: FolderListing, files: Array<{ path: string; handle: FileSystemFileHandle }>): Promise<void> {
     const directories: Array<{ path: string; handle: FileSystemDirectoryHandle }> = [];
     for await (const handle of (directory as unknown as { values(): AsyncIterable<FileSystemHandle> }).values()) {
       const path = prefix ? `${prefix}/${handle.name}` : handle.name;
@@ -215,11 +343,19 @@ export class MountSession {
         files.push({ path, handle: handle as FileSystemFileHandle });
       }
     }
-    await inBatches(files, async ({ path, handle }) => {
-      const file = await handle.getFile();
-      into.set(path, { kind: 'file', mtime: file.lastModified, size: file.size });
-    });
-    for (const { path, handle } of directories) await this.walk(handle, path, into);
+    for (const { path, handle } of directories) await this.walk(handle, path, into, files);
+  }
+
+  /** Whether the runtime may change the file, or reads what it holds as a whole: the metadata, and the data of a dataset. */
+  private copied(path: string, datasets: Set<string>): boolean {
+    const segments = path.split('/');
+    if (segments.includes(METADATA_DIRECTORY)) return true;
+    return segments.slice(0, -1).some((_, index) => datasets.has(segments.slice(0, index + 1).join('/'))) || datasets.has('');
+  }
+
+  /** Takes the file out of the runtime when it is there, to be made again. */
+  private drop(absolute: string): void {
+    try { this.fs.unlink(absolute); } catch { /* it was not there */ }
   }
 
   private async fileHandle(path: string): Promise<FileSystemFileHandle> {

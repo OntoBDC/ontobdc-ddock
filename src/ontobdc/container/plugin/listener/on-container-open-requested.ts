@@ -76,7 +76,7 @@ export class OnContainerOpenRequested {
         const name = picked[0].webkitRelativePath.split('/')[0];
         const files = new Map(picked.map((file) => [file.webkitRelativePath.slice(name.length + 1), file]));
         void openContainer({
-          name, access: 'read',
+          name, access: 'read', location: `/storage/${name}`,
           read: async (path) => files.get(path) ?? null,
           mount: async (path) => ({ path, files: await Promise.all([...files]
             .filter(([relative]) => relative.startsWith('.__ontobdc__/'))

@@ -1,5 +1,6 @@
 import { StorageRoot } from '@/ontobdc/shared/adapter/storage-root';
 import type { CapabilityContext, CapabilityMetadata } from '@/ontobdc/shared/domain/model/capability';
+import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { pickFolder } from './storage';
 
 const CONTAINER_ID = 'ontobdc-container';
@@ -18,6 +19,8 @@ export class StorageContainerDefinedCapability {
 
   /** Asks the person for the folder, with the folder picker, and records it. */
   async execute(context: CapabilityContext): Promise<void> {
-    new StorageRoot(context).defineContainer(await pickFolder({ mode: 'readwrite', id: CONTAINER_ID }));
+    const folder = await pickFolder({ mode: 'readwrite', id: CONTAINER_ID });
+    new StorageRoot(context).defineContainer(folder);
+    eventBus.publish('presentation.container.folder.picked', 'container_storage_container_defined', { name: folder.name });
   }
 }

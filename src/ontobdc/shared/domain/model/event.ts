@@ -139,6 +139,8 @@ type CoreEvents = {
   'presentation.container.remote.opened': ContainerOpened;
   'presentation.container.create.cancelled': undefined;
   'presentation.container.open.cancelled': undefined;
+  /** The person chose the folder of the container to open: it is not read yet. */
+  'presentation.container.folder.picked': { name: string };
   /** Request and report the last successfully opened container without a getter. */
   'presentation.container.state.requested': undefined;
   'presentation.container.state.reported': { container: ContainerOpened | null };

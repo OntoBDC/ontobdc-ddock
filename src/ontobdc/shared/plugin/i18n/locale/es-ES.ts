@@ -97,6 +97,8 @@ export const esES: Messages = {
   'explorer.menu.shortcut.delete': 'Supr',
   'notice.file.rename.failed': "No se pudo renombrar el archivo: {message}",
   'notice.file.delete.failed': "No se pudo eliminar el archivo: {message}",
+  'notice.command.read.failed': "Un comando necesitó el contenido de un archivo que no se leyó del disco. Actualiza la carpeta (refresh) e inténtalo de nuevo.",
+  'notice.container.folder.picked': "Leyendo “{name}”… el proyecto estará disponible en unos instantes.",
   'notice.file.relate.failed': "No se pudo relacionar el archivo: {message}",
   'notice.file.relate.no_entity': "Abra la pestaña de una entidad para relacionar el archivo con ella.",
   'notice.file.relate.no_documents': "La entidad no tiene un campo de documentos para relacionar el archivo.",
