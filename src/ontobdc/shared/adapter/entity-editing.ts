@@ -1,3 +1,4 @@
+import { forgetReferenceEditors } from '@/ontobdc/shared/adapter/entity-references';
 import { forgetListEditors } from '@/ontobdc/shared/adapter/list-editors';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { editorFor } from '@/ontobdc/shared/adapter/editor_by_datatype';
@@ -55,7 +56,7 @@ export async function startEditing(id: string): Promise<void> {
       ? Object.fromEntries(Object.entries(JSON.parse(term.dataset.optionLabels) as Record<string, Record<string, string>>)
         .flatMap(([option, names]) => { const shown = nameIn(names, getLocale()); return shown ? [[option, shown]] : []; }))
       : undefined;
-    const editor = (await editorFor(term.dataset.datatype, options, term.dataset.multivalued === 'true', term.dataset.documents === 'true'))({
+    const editor = (await editorFor(term.dataset.datatype, options, term.dataset.multivalued === 'true', term.dataset.documents === 'true', term.dataset.entities === 'true'))({
       value: initial,
       datatype: term.dataset.datatype ?? '',
       label: term.textContent ?? name,
@@ -63,6 +64,9 @@ export async function startEditing(id: string): Promise<void> {
       optionLabels,
       multivalued: term.dataset.multivalued === 'true',
       documents: term.dataset.documents === 'true',
+      entityTypes: term.dataset.entityTypes ? (JSON.parse(term.dataset.entityTypes) as string[]) : undefined,
+      owned: term.dataset.owned === 'true',
+      entityTypeLabels: term.dataset.entityTypeLabels ? (JSON.parse(term.dataset.entityTypeLabels) as Record<string, string>) : undefined,
       owner: id,
       field: name,
     });
@@ -110,6 +114,7 @@ export async function startEditing(id: string): Promise<void> {
     delete panel.dataset.mode;
     sessions.delete(id);
     forgetListEditors(id);
+    forgetReferenceEditors(id);
   };
   /** Puts the fields back as they were drawn. */
   const restore = (): void => {

@@ -1,4 +1,4 @@
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import source from '@/asset/config.yaml?raw';
 import coreLogo from '@/asset/logo-system.png';
 
@@ -131,6 +131,17 @@ export class Config {
       colored: brandAt('metadata.brand.colored', ontobdcBrand.colored),
       color: brandAt('metadata.brand.color', ontobdcBrand.color),
     };
+  }
+
+  /**
+   * The `constraint` of the config, as the body of the `--config` the commands that refresh or check a container are
+   * given: the config reduced to that key, in YAML. A config that declares none gives an empty `constraint`, which
+   * is what the container is brought to as well: the constraints it holds are the ones of the config, no more.
+   */
+  static constraintBody(): string {
+    const value = valueAt('constraint');
+    if (value !== undefined && !isDocument(value)) throw new Error('The config has "constraint" as something other than a mapping.');
+    return stringify({ constraint: value ?? {} });
   }
 
   /** The addons, in order, whose `plugin/command` rewriters change the commands before they run. */

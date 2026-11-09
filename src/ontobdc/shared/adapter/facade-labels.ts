@@ -7,6 +7,10 @@ export type FacadeField = {
   editable?: boolean;
   /** The IRI of the value generator that gives the field its value on creation when none was given. */
   default?: string | null;
+  /** The value the facade gives the field on every instance created without one: it is not asked for. */
+  default_value?: string | null;
+  /** The entity the field points to belongs to the entity: it is made for it, not chosen, and deleted with it. */
+  owned?: boolean;
   /** The field has to have a value. */
   required?: boolean;
   /** The field holds a list: its values are separated by `|`. */
@@ -14,6 +18,10 @@ export type FacadeField = {
   labels: Record<string, string>;
   /** The only values the field takes, when the facade lists them. */
   options?: string[];
+  /** The property the value is written to, an IRI. */
+  maps_to_resource?: string;
+  /** The identifiers of the entity types the field belongs to; none when it belongs to every entity. */
+  applies_to?: string[];
   /** The names of the options, by option and lower-case language tag. */
   option_labels?: Record<string, Record<string, string>>;
   /** The datatype of the values, an IRI such as `http://www.w3.org/2001/XMLSchema#dateTime`. */
@@ -23,7 +31,7 @@ export type FacadeField = {
   /** The visualization the field asks for in place of text, and the files it shows. */
   alternative_visualization?: { iri: string; accepts: { mime_types: string[]; extensions: string[] } } | null;
   /** The facade of the resources the values of the field point to; absent for a plain text field. */
-  resource_facade?: { resource_iri: string | null; fields: FacadeField[] } | null;
+  resource_facade?: { resource_iri: string | null; /** The entity types a field that points to entities can point to; none when it can point to any. */ entity_types?: string[]; /** What each of those types is called, by type and by language. */ entity_type_labels?: Record<string, Record<string, string>>; fields: FacadeField[] } | null;
 };
 export type Facade = {
   name?: string;

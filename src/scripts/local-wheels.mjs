@@ -13,7 +13,7 @@
  *
  * The source is copied before it is built, so nothing is written into the
  * repositories (which docker mounts read-only). A package is built again only
- * when its source changed.
+ * when its source changed, and always when `force` is asked.
  */
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -59,7 +59,7 @@ const sourceOf = ({ name, env, folder }) => {
  * Builds what has to be built and returns, by package name, the wheel and the
  * hash of the source it came from. Packages whose source was not found are left out.
  */
-export function buildLocalWheels(manifest) {
+export function buildLocalWheels(manifest, { force = false } = {}) {
   const built = new Map();
   for (const entry of manifest.localSources ?? []) {
     const source = sourceOf(entry);
@@ -72,7 +72,7 @@ export function buildLocalWheels(manifest) {
     const stamp = join(output, '.source-hash');
     const hash = hashOf(source);
     const existing = existsSync(output) ? readdirSync(output).find((file) => file.endsWith('.whl')) : undefined;
-    if (existing && existsSync(stamp) && readFileSync(stamp, 'utf8') === hash) {
+    if (!force && existing && existsSync(stamp) && readFileSync(stamp, 'utf8') === hash) {
       console.log(`[python] ${entry.name}: ${existing} is up to date with ${source}`);
       built.set(entry.name, { path: join(output, existing), hash });
       continue;

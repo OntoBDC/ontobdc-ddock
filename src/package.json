@@ -1,13 +1,13 @@
 {
   "name": "ontobdc",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.5.0",
   "type": "module",
   "workspaces": [
     "addon/*"
   ],
   "scripts": {
-    "python:vendor": "node scripts/vendor-python.mjs",
+    "python:vendor": "node scripts/vendor-python.mjs --force",
     "predev": "npm run python:vendor",
     "dev": "vite --host 0.0.0.0 --port 5173",
     "prebuild": "npm run python:vendor",

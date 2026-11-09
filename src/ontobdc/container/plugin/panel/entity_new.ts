@@ -3,11 +3,13 @@ import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { editorFor } from '@/ontobdc/shared/adapter/editor_by_datatype';
 import type { Editor } from '@/ontobdc/shared/adapter/editor/editor';
 import { EntityRepository } from '@/ontobdc/shared/adapter/entity-repository';
+import { entityTypeLabelsOf, entityTypesOf, forgetReferenceEditors, isEntityReference, isOwned } from '@/ontobdc/shared/adapter/entity-references';
 import { nameIn } from '@/ontobdc/shared/adapter/facade-labels';
 import type { Mountable } from '@/ontobdc/shared/adapter/view';
 import { getLocale, onLocaleChange, translate } from '@/ontobdc/shared/plugin/i18n';
 
 const ID_PREFIX = 'entity-new:';
+const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 
 /**
  * A Surface tab to fill in a new entity of a group of the database. Its fields
@@ -46,15 +48,20 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
   titleSave();
 
   const required = new Set<string>();
-  /** What the person filled in, by field; a field left empty is not part of it. */
+  /** The fields that belong to other types than the one chosen: they are not shown and take no value. */
+  const hidden = new Set<string>();
+  /** What the person filled in, by field; a field left empty, or one that is not of the type, is not part of it. */
   const filled = (): Record<string, string> => Object.fromEntries(
-    [...editors].map(([name, editor]) => [name, editor.value()]).filter(([, value]) => value.trim() !== ''),
+    [...editors].filter(([name]) => !hidden.has(name)).map(([name, editor]) => [name, editor.value()]).filter(([, value]) => value.trim() !== ''),
   );
+  /** Whether the facade gives a field a value of its own. */
+  let named = false;
   const refresh = (): void => {
     const values = filled();
-    const valid = [...editors].every(([name, editor]) => editor.isValid() || (values[name] === undefined && !required.has(name)));
-    const complete = [...required].every((name) => values[name] !== undefined);
-    save.disabled = Object.keys(values).length === 0 || !valid || !complete;
+    const valid = [...editors].filter(([name]) => !hidden.has(name)).every(([name, editor]) => editor.isValid() || (values[name] === undefined && !required.has(name)));
+    const complete = [...required].filter((name) => !hidden.has(name)).every((name) => values[name] !== undefined);
+    // Nothing filled in is an entity too when the facade gives a field a value of its own (a 5W2H is called 5W2H): the rest is filled in later.
+    save.disabled = (Object.keys(values).length === 0 && !named) || !valid || !complete;
   };
   save.addEventListener('click', () => {
     if (save.disabled) return;
@@ -84,9 +91,22 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
     const fields = document.createElement('dl');
     fields.className = 'entity-fields';
     const initial = repository.newValuesOf(groupId);
+    named = facade.fields.some((field) => field.default_value !== undefined && field.default_value !== null);
     const editable = [...facade.fields]
-      .filter((field) => !field.default && (field.editable === true || field.required === true))
+      .filter((field) => !field.default && (field.default_value === undefined || field.default_value === null) && (field.editable === true || field.required === true))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const rows = new Map<string, { term: HTMLElement; detail: HTMLElement; types: string[] }>();
+    const typeField = facade.fields.find((field) => field.maps_to_resource === RDF_TYPE);
+    /** Shows the fields of the type chosen, and hides the ones of other types: a field that names no type is always shown. */
+    const applyType = (): void => {
+      const chosen = typeField ? (editors.get(typeField.identifier)?.value() ?? initial[typeField.identifier] ?? '').trim() : '';
+      for (const [name, { term, detail, types }] of rows) {
+        const belongs = types.length === 0 || (chosen !== '' && types.includes(chosen));
+        term.hidden = !belongs;
+        detail.hidden = !belongs;
+        if (belongs) hidden.delete(name); else hidden.add(name);
+      }
+    };
     for (const field of editable) {
       const term = document.createElement('dt');
       term.dataset.field = field.identifier;
@@ -95,10 +115,14 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
       term.textContent = labelText(field.identifier, field.labels, field.required === true);
       const detail = document.createElement('dd');
       const documents = field.resource_facade?.fields.some((resource) => resource.identifier === 'title') === true;
-      const editor = (await editorFor(field.datatype, field.options, field.multivalued === true, documents))({
+      const entities = isEntityReference(field);
+      const editor = (await editorFor(field.datatype, field.options, field.multivalued === true, documents, entities))({
         value: initial[field.identifier] ?? '',
         datatype: field.datatype ?? '',
         label: term.textContent,
+        entityTypes: entities ? entityTypesOf(field) : undefined,
+        entityTypeLabels: entities ? entityTypeLabelsOf(field) : undefined,
+        owned: isOwned(field),
         options: field.options,
         multivalued: field.multivalued === true,
         documents,
@@ -108,11 +132,14 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
       });
       editors.set(field.identifier, editor);
       if (field.required === true) required.add(field.identifier);
-      editor.onChange(refresh);
+      if (!Array.isArray(field.applies_to)) throw new Error(`The facade does not say which types the field ${field.identifier} belongs to: brasidatacenter 0.15.0 or later is needed.`);
+      rows.set(field.identifier, { term, detail, types: field.applies_to });
+      editor.onChange(field.identifier === typeField?.identifier ? () => { applyType(); refresh(); } : refresh);
       detail.append(editor.element);
       fields.append(term, detail);
     }
     root.replaceChildren(actions, header, fields);
+    applyType();
     refresh();
   };
 
@@ -132,6 +159,7 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
     dispose: () => {
       unsubscribe();
       forgetListEditors(`new:${groupId}`);
+      forgetReferenceEditors(`new:${groupId}`);
       root.remove();
     },
   };

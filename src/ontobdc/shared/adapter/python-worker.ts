@@ -176,12 +176,15 @@ async function run(request: Extract<PythonWorkerRequest, { type: 'run' }>): Prom
       throw new Error('The container mount must be an absolute directory path.');
     }
     const cwd = mount.cwd ?? mount.path;
-    if (cwd !== mount.path && (cwd === '/' || !cwd.startsWith('/') || cwd.split('/').some((part) => part === '..' || part === '.') || !mount.path.startsWith(`${cwd}/`))) {
-      throw new Error('The working directory must be a directory above the container mount.');
+    // A command runs in the mount, in a directory above it (it sees more of the root), or in one inside it (a container of the root).
+    const above = mount.path.startsWith(`${cwd}/`);
+    const inside = cwd.startsWith(`${mount.path}/`);
+    if (cwd !== mount.path && (cwd === '/' || !cwd.startsWith('/') || cwd.split('/').some((part) => part === '..' || part === '.') || !(above || inside))) {
+      throw new Error('The working directory must be the container mount, a directory above it, or one inside it.');
     }
     // The session is kept only for the same folder at the same place: any other command ends it first.
     if (session && !(mount.handle && await session.isFor(mount.path, mount.handle))) await endSession(python);
-    if (cwd !== mount.path && virtualOwner !== mount.path) {
+    if (above && virtualOwner !== mount.path) {
       // A working directory above the mount belongs to the container mounted in it: another one never inherits it.
       await discardDirectory(python, cwd);
       virtualOwner = mount.path;

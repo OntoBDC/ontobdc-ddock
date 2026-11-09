@@ -1,4 +1,5 @@
 import { quoted, requestCommand } from '@/ontobdc/shared/adapter/command-request';
+import { deliverCreated } from '@/ontobdc/shared/adapter/entity-references';
 import { EntityRepository } from '@/ontobdc/shared/adapter/entity-repository';
 import { eventBus, type AppEvent } from '@/ontobdc/shared/adapter/event-bus';
 import type { AppEventMap } from '@/ontobdc/shared/domain/model/event';
@@ -35,7 +36,8 @@ export class OnEntityCreateRequested {
    * Runs `ontobdc container --entity <type> --create '<values as JSON>'`, the type
    * being the one the group holds. When it worked, publishes
    * `presentation.entity.created` with the global id the command answered, asks
-   * the surface to open the tab of the new entity (in read mode) in place of the form, and reads the entities again
+   * the surface to open the tab of the new entity (in read mode) in place of the form (or, when it was made to be chosen
+   * in a field of another entity, to go back to the tab of that one), and reads the entities again
    * so the database shows it; when it did not, publishes
    * `presentation.entity.create.failed` with the reason and the tab stays open.
    */
@@ -43,7 +45,10 @@ export class OnEntityCreateRequested {
     const group = this.request?.group;
     const values = this.request?.values;
     if (!group) throw new Error('The request to create an entity carries no group.');
-    if (!values || Object.keys(values).length === 0) throw new Error('The request to create an entity carries no values.');
+    if (!values) throw new Error('The request to create an entity carries no values.');
+    // Nothing given is an entity too when the facade gives a field a value of its own: the command gives it.
+    const named = EntityRepository.getInstance().facadeOf(group)?.fields.some((field) => field.default_value !== undefined && field.default_value !== null) === true;
+    if (Object.keys(values).length === 0 && !named) throw new Error('The request to create an entity carries no values.');
 
     try {
       const entities = EntityRepository.getInstance().findGroup(group);
@@ -60,14 +65,23 @@ export class OnEntityCreateRequested {
       if (!id) throw new Error('The command did not answer the global id of the new entity.');
 
       eventBus.publish('presentation.entity.created', SOURCE, { group, id });
-      // The tab of the new entity gives way to the tab of the entity, in read mode, while the lists are read again.
       EntityRepository.getInstance().expect(id);
-      eventBus.publish('presentation.main.panel.open.requested', SOURCE, {
-        container: 'surface',
-        id: `entity:${id}`,
-        component: 'entity',
-        title: values.name || values.title || id,
-      });
+      // An entity made to be chosen in the field of another one goes there, and the tab of that one comes back;
+      // any other opens in read mode in place of the form.
+      // The name an entity is chosen by: the one given, else the one its facade gives every instance (a 5W2H is called 5W2H).
+      const given = EntityRepository.getInstance().facadeOf(group)?.fields.find((field) => ['title', 'name'].includes(field.identifier) && field.default_value)?.default_value;
+      const name = values.name || values.title || given || id;
+      const back = deliverCreated(group, id, name, type);
+      if (back) {
+        eventBus.publish('presentation.main.panel.open.requested', SOURCE, { container: 'surface', id: back, component: back.startsWith('entity-new:') ? 'entity_new' : 'entity', title: '' });
+      } else {
+        eventBus.publish('presentation.main.panel.open.requested', SOURCE, {
+          container: 'surface',
+          id: `entity:${id}`,
+          component: 'entity',
+          title: name,
+        });
+      }
       eventBus.publish('presentation.main.panel.close.requested', SOURCE, { container: 'surface', id: `entity-new:${group}` });
       eventBus.publish('presentation.main.command.requested', SOURCE, { requestId: crypto.randomUUID(), command: CONTAINER_ENTITY_COMMAND });
     } catch (error) {

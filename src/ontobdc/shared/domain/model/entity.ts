@@ -2,7 +2,7 @@
 export type EntityGeometry = { id: string; wkt: string; shape: string | null; stroke: string | null; stroke_width: number | null; fill: string | null };
 
 /** `geometries` is, for a field of geometries, what each of its values is besides the text: one for each value, in the same order. */
-export type EntityField = { name: string; labels: Record<string, string>; editable: boolean; values: string[]; geometries?: EntityGeometry[] };
+export type EntityField = { name: string; labels: Record<string, string>; editable: boolean; values: string[]; geometries?: EntityGeometry[]; /** The values are the global ids of entities of the container. */ referencesEntities?: boolean };
 
 /** One entity of a dataset, as `ontobdc container --entity` tells it: its fields are whatever its data source holds. */
 export type EntityItem = { id: string; name: string; type: string; fields: EntityField[] };
@@ -12,7 +12,7 @@ export type EntityItem = { id: string; name: string; type: string; fields: Entit
  * the entities its data sources hold. `id` is the dataset's path in the
  * container, `title` its name, `entityTypes` the entity types it declares.
  */
-export type EntityGroup = { id: string; title: string; entityTypes: string[]; items: EntityItem[] };
+export type EntityGroup = { id: string; title: string; entityTypes: string[]; items: EntityItem[]; /** The entities of the group are made for another entity (the framework of a work stream): they are not offered to be chosen among the others. */ owned?: boolean };
 
 /**
  * One entity of a tree, with the entities below it, as `ontobdc container --entity <type> --tree`

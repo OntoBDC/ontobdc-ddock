@@ -21,7 +21,10 @@ export class EntityTypeResolvedCapability {
     if (!type && groupId) {
       const group = EntityRepository.getInstance().findGroup(groupId);
       if (!group) throw new Error(`The database has no group ${groupId}.`);
-      type = group.items[0]?.type || group.entityTypes[0];
+      // The group names its types by IRI and its entities by the name of the type: the type is the IRI of the one
+      // the group declares, or, when it declares several, of the one the first entity is of.
+      const named = group.items[0]?.type;
+      type = group.entityTypes.length === 1 ? group.entityTypes[0] : group.entityTypes.find((iri) => iri.split('#').pop() === named);
       if (!type) throw new Error(`The group ${group.title} has no entity type to create an entity of.`);
     }
     if (!type) throw new Error('The request for a new entity names neither a type nor a group.');

@@ -33,7 +33,9 @@ export const EDITOR_BY_DATATYPE: Readonly<Record<string, Loader>> = {
  * from when the facade lists the values the field takes, a choice of one file when the field takes one document of the
  * container, a button that draws it when the field is a geometry, else the editor of its datatype (an IRI), else the text editor.
  */
-export async function editorFor(datatype: string | undefined, options?: string[], multivalued = false, documents = false): Promise<EditorFactory> {
+export async function editorFor(datatype: string | undefined, options?: string[], multivalued = false, documents = false, entities = false): Promise<EditorFactory> {
+  if (entities && multivalued) return (await import('@/ontobdc/shared/adapter/editor/entity_references_editor')).default;
+  if (entities) return (await import('@/ontobdc/shared/adapter/editor/entity_reference_editor')).default;
   if (datatype === GEO_WKT) return (await import('@/ontobdc/shared/adapter/editor/geometry_editor')).default;
   if (documents && !multivalued && !(options && options.length > 0)) return (await import('@/ontobdc/shared/adapter/editor/document_editor')).default;
   if (multivalued && !(options && options.length > 0)) return (await import('@/ontobdc/shared/adapter/editor/list_editor')).default;

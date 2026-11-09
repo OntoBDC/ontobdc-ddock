@@ -3,10 +3,6 @@ services:
     build:
       context: ../src
       dockerfile: ../docker/Dockerfile
-      # The manifests of the addons the checkout has, from up.sh; the context is src, so
-      # each one is the path of its addon in there.
-      args:
-        ADDON_MANIFESTS: "${ADDON_MANIFESTS:-}"
     container_name: obdc-ddock
     ports:
       - "${DDOCK_PORT:-5172}:5172"

@@ -60,6 +60,7 @@ export const esES: Messages = {
   'notice.upload.skipped': 'Estos archivos ya existían en {path} y se mantuvieron como estaban: {names}',
   'entity.list.add': 'Añadir',
   'entity.document.choose': 'Elegir un archivo…',
+  'entity.reference.new': "Nuevo en…",
   'entity.geometry.draw': 'Dibujar la geometría',
   'entity.geometry.saveFirst': 'Guarda primero la anotación: aún no hay sobre qué dibujar',
   'entity.document.clear': 'No dejar ningún archivo',

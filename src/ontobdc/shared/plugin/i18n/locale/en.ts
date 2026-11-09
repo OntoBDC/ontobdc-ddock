@@ -56,6 +56,7 @@ export const en = {
   'notice.upload.skipped': 'These files already existed in {path} and were kept as they were: {names}',
   'entity.list.add': 'Add',
   'entity.document.choose': 'Choose a file…',
+  'entity.reference.new': "New in…",
   'entity.geometry.draw': 'Draw the geometry',
   'entity.geometry.saveFirst': 'Save the annotation first: there is nothing to draw on yet',
   'entity.document.clear': 'Leave no file',

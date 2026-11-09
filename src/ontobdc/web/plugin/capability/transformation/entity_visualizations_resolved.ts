@@ -62,6 +62,7 @@ export class EntityVisualizationsResolvedCapability {
         const found = requested.get(term.dataset.field ?? '');
         const detail = term.nextElementSibling as HTMLElement | null;
         if (!found || !detail) continue;
+        delete detail.dataset.visualized;
 
         const stored = item?.fields.find((candidate) => candidate.name === found.field.identifier)?.values ?? [];
         const values = (found.field.multivalued === true ? stored.flatMap((text) => text.split(SEPARATOR)) : stored)
@@ -74,6 +75,8 @@ export class EntityVisualizationsResolvedCapability {
           continue;
         }
         drawn.get(panel)!.push(visualization.dispose);
+        // What a visualization drew is not text to be named by the steps after this one.
+        detail.dataset.visualized = 'true';
         if (visualization.aside) {
           // Beside the fields, at the right: the row of the field is not drawn.
           let aside = asides.get(panel);

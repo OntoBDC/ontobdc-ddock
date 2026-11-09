@@ -9,19 +9,17 @@ RUN apk add --no-cache python3 py3-pip \
     && /opt/wheel-build/bin/pip install --no-cache-dir build setuptools wheel "hatchling>=1.27"
 ENV PATH="/opt/wheel-build/bin:${PATH}"
 
-# The lockfile pins every dependency to the versions the tests ran with. Every addon
-# declares its own dependencies in its own package.json (npm workspaces), so the manifest
-# of each addon goes in before the install; up.sh passes the ones the checkout has in
-# ADDON_MANIFESTS and an addon it does not have is simply not passed. --parents keeps the
-# addon directory of every manifest, which is where npm looks for the workspace.
-ARG ADDON_MANIFESTS
-COPY --parents package.json package-lock.json ${ADDON_MANIFESTS} ./
-
-RUN npm ci --no-audit --no-fund
-
+# The npm the base image ships (10.9.9) cannot resolve this dependency tree: its
+# peer-dependency pass crashes on vitest's peers with "Cannot read properties of
+# null (reading 'edgesOut')". The install that runs at start needs this one.
+RUN npm install --global npm@12.2.2 --no-audit --no-fund
 
 COPY . ./
 
 EXPOSE 5172
 
-CMD ["npm", "run", "dev"]
+# The dependencies are installed when the container starts, over the sources the compose
+# file mounts, so the install always matches the workspace the checkout has (the addons
+# the installed system brings in, among them). --no-package-lock keeps that install from
+# writing a lockfile back into the mounted sources.
+CMD ["sh", "-c", "npm install --no-package-lock --no-audit --no-fund && npm run dev"]

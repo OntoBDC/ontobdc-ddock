@@ -11,30 +11,81 @@
  *   public/python/wheels.json  the wheel file names, installed in this order
  *
  * The Pyodide distribution comes from its GitHub release tarball (cached in
- * .cache/). Re-running is a no-op while the manifest is unchanged.
+ * .cache/). Re-running is a no-op while the manifest is unchanged, unless
+ * `--force` is given.
  */
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, copyFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import YAML from 'yaml';
 import { buildLocalWheels } from './local-wheels.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = join(ROOT, 'python', 'manifest.json');
+// Where the versions of the Python packages are pinned: the file the environment names, else the `system.obdc` next to `src`.
+const SYSTEM_PATH = process.env.SYSTEM_OBDC_PATH ?? join(ROOT, '..', 'system.obdc');
 const OUT = join(ROOT, 'public', 'python');
 const CACHE = join(ROOT, '.cache');
 const STAMP = join(OUT, '.stamp');
+const FORCE = process.argv.includes('--force');
 // The loader's files; which of the asm wrappers exists depends on the Pyodide version.
 const CORE_FILES = ['pyodide.mjs', 'pyodide.asm.js', 'pyodide.asm.mjs', 'pyodide.asm.wasm', 'python_stdlib.zip', 'pyodide-lock.json'];
 
-const manifestText = readFileSync(MANIFEST_PATH, 'utf8');
-const manifest = JSON.parse(manifestText);
 const sha256 = (data) => createHash('sha256').update(data).digest('hex');
+const normalize = (name) => name.toLowerCase().replace(/[-_.]+/g, '-');
+
+/**
+ * The versions `system.obdc` pins for the Python packages, by name. The pins are optional: a checkout with no
+ * `system.obdc` next to `src` (this repository on its own) has none, and the manifest stands as it is. A file the
+ * environment names (`SYSTEM_OBDC_PATH`) has to be there: naming one that is not is a mistake, not an absence.
+ */
+function readPinnedPythonVersions() {
+  if (!existsSync(SYSTEM_PATH)) {
+    if (process.env.SYSTEM_OBDC_PATH) throw new Error(`system.obdc was not found for Python dependency pinning: ${SYSTEM_PATH}`);
+    return new Map();
+  }
+  const system = YAML.parse(readFileSync(SYSTEM_PATH, 'utf8'));
+  const deps = system?.python?.dep;
+  if (!Array.isArray(deps)) return new Map();
+  return new Map(
+    deps
+      .filter((entry) => typeof entry?.name === 'string' && typeof entry?.version === 'string')
+      .map((entry) => [normalize(entry.name), entry.version]),
+  );
+}
+
+function syncManifestWithSystem(manifest, pinned) {
+  const unresolved = new Set(pinned.keys());
+  const wheels = (manifest.wheels ?? []).map((spec) => {
+    const [name] = String(spec).split('==', 1);
+    const key = normalize(name);
+    if (!pinned.has(key)) return spec;
+    unresolved.delete(key);
+    return `${name}==${pinned.get(key)}`;
+  });
+  const localWheels = (manifest.localWheels ?? []).map((entry) => {
+    const key = normalize((entry.name ?? basename(entry.file ?? '').split('-')[0] ?? '').trim());
+    if (!pinned.has(key)) return entry;
+    unresolved.delete(key);
+    return { ...entry, pypi: `${key}==${pinned.get(key)}` };
+  });
+  if (unresolved.size) {
+    throw new Error(
+      `python/manifest.json does not mirror the Python dependencies pinned in system.obdc: ${[...unresolved].sort().join(', ')}`,
+    );
+  }
+  return { ...manifest, wheels, localWheels };
+}
+
+const manifestText = readFileSync(MANIFEST_PATH, 'utf8');
+const pinnedPythonVersions = readPinnedPythonVersions();
+const manifest = syncManifestWithSystem(JSON.parse(manifestText), pinnedPythonVersions);
 // The wheels of this project's own packages are built from their source when it is found.
-const built = buildLocalWheels(manifest);
+const built = buildLocalWheels(manifest, { force: FORCE });
 // The committed local wheels are pinned by sha256 in the manifest; the built ones, by the hash of their source.
-const stamp = sha256(manifestText + JSON.stringify([...built].map(([name, { hash }]) => [name, hash])));
+const stamp = sha256(JSON.stringify(manifest) + JSON.stringify([...built].map(([name, { hash }]) => [name, hash])));
 
 /**
  * The stamp only says what was vendored, not that it is still there: a cleaned
@@ -52,12 +103,10 @@ function vendored() {
   }
 }
 
-if (existsSync(STAMP) && readFileSync(STAMP, 'utf8') === stamp && vendored()) {
+if (!FORCE && existsSync(STAMP) && readFileSync(STAMP, 'utf8') === stamp && vendored()) {
   console.log('[python] runtime already vendored');
   process.exit(0);
 }
-
-const normalize = (name) => name.toLowerCase().replace(/[-_.]+/g, '-');
 
 async function fetchComplete(url, decode) {
   for (let attempt = 1; attempt <= 5; attempt++) {

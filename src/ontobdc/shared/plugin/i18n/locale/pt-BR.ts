@@ -60,6 +60,7 @@ export const ptBR: Messages = {
   'notice.upload.skipped': 'Estes arquivos já existiam em {path} e foram mantidos como estavam: {names}',
   'entity.list.add': 'Adicionar',
   'entity.document.choose': 'Escolher um arquivo…',
+  'entity.reference.new': "Novo em…",
   'entity.geometry.draw': 'Desenhar a geometria',
   'entity.geometry.saveFirst': 'Grave a anotação primeiro: ainda não há sobre o que desenhar',
   'entity.document.clear': 'Não deixar nenhum arquivo',

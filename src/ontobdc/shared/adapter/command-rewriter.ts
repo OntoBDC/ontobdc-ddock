@@ -14,9 +14,24 @@ function rewriters(): CommandRewriter[] {
   );
 }
 
-/** The command after every rewriter of the config changed it; the same command when the config names none. */
+/** The flags that ask a container (or a project) to be refreshed or checked, and the components they are of. */
+const CONFIG_FLAGS = ['--refresh', '--health'];
+const CONFIG_COMPONENTS = ['container', 'project'];
+
+/**
+ * The command, given the config of the application when it refreshes or checks a container: its constraint is what
+ * the refresh replicates into the container, and what the check compares the container with. A command that was given
+ * a `--config` already keeps it.
+ */
+function withConfig(command: RewrittenCommand): RewrittenCommand {
+  const { argv } = command;
+  if (!CONFIG_COMPONENTS.includes(argv[1] ?? '') || !CONFIG_FLAGS.some((flag) => argv.includes(flag)) || argv.includes('--config')) return command;
+  return { ...command, argv: [...argv, '--config', Config.constraintBody()] };
+}
+
+/** The command after every rewriter of the config changed it, and given the config of the application; the same command when neither applies. */
 export function rewriteCommand(command: RewrittenCommand): RewrittenCommand {
-  return rewriters().reduce((current, rewriter) => rewriter.rewrite(current), command);
+  return withConfig(rewriters().reduce((current, rewriter) => rewriter.rewrite(current), command));
 }
 
 /** The programs a command may start with: `ontobdc`, and the ones the rewriters run. */

@@ -155,7 +155,7 @@ export function unwrapCliText(text: string): string {
   return text.replace(/\n/g, '');
 }
 
-type ListedDataset = { path?: unknown; title?: unknown; entity_types?: unknown; entities?: unknown };
+type ListedDataset = { path?: unknown; title?: unknown; entity_types?: unknown; owned?: unknown; entities?: unknown };
 
 /**
  * The groups `ontobdc container --entity` answers: one per dataset of the
@@ -176,6 +176,7 @@ export function entityGroupsOf(response: unknown): EntityGroup[] | null {
         ? dataset.entity_types.filter((type): type is string => typeof type === 'string')
         : [],
       items: entityItemsOf(dataset.entities),
+      ...(dataset.owned === true ? { owned: true } : {}),
     });
   }
   return groups;
@@ -235,6 +236,7 @@ function entityFieldsOf(fields: unknown): EntityField[] {
       name: field.name,
       labels: entityLabelsOf(field.labels),
       editable: field.editable === true,
+      ...(field.references_entities === true ? { referencesEntities: true } : {}),
       values: kept.map((index) => unwrapCliText(raw[index] as string)),
       ...(geometries ? { geometries: kept.flatMap((index) => { const geometry = entityGeometryOf(geometries[index]); return geometry ? [geometry] : []; }) } : {}),
     });

@@ -1,4 +1,5 @@
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
+import { entityTypeLabelsOf, entityTypesOf, isEntityReference, isOwned } from '@/ontobdc/shared/adapter/entity-references';
 import { keepApplied, panelAndFacade } from '@/ontobdc/shared/adapter/facade-labels';
 import type { CapabilityContext, CapabilityMetadata } from '@/ontobdc/shared/domain/model/capability';
 
@@ -41,6 +42,12 @@ export class EntityEditabilityResolvedCapability {
         term.dataset.required = String(field.required === true);
         term.dataset.multivalued = String(field.multivalued === true);
         term.dataset.documents = String(field.resource_facade?.fields.some((resource) => resource.identifier === 'title') === true);
+        term.dataset.entities = String(isEntityReference(field));
+        term.dataset.owned = String(isOwned(field));
+        if (isEntityReference(field)) {
+          term.dataset.entityTypes = JSON.stringify(entityTypesOf(field));
+          term.dataset.entityTypeLabels = JSON.stringify(entityTypeLabelsOf(field));
+        }
         if (field.options?.length) term.dataset.options = JSON.stringify(field.options);
         if (field.option_labels) term.dataset.optionLabels = JSON.stringify(field.option_labels);
       }

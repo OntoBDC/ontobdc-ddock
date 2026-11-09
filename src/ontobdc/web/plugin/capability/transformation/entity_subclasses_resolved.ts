@@ -1,4 +1,5 @@
-import { keepApplied, nameIn, panelAndFacade } from '@/ontobdc/shared/adapter/facade-labels';
+import { entityLabels, isEntityReference } from '@/ontobdc/shared/adapter/entity-references';
+import { keepApplied, nameIn, panelAndFacade, type FacadeField } from '@/ontobdc/shared/adapter/facade-labels';
 import type { CapabilityContext, CapabilityMetadata } from '@/ontobdc/shared/domain/model/capability';
 
 /** Per entity panel: what stops the names from being kept, replaced when the tab is set up again. */
@@ -21,17 +22,22 @@ export class EntitySubclassesResolvedCapability {
 
   async execute(context: CapabilityContext): Promise<void> {
     const { panel, facade } = panelAndFacade(context);
+    // The fields that are named: the ones of entities (by the entities of the container) and the ones with option names.
     const named = new Map(
       facade.fields
-        .filter((field) => Object.keys(field.option_labels ?? {}).length > 0)
-        .map((field) => [field.identifier, field.option_labels!]),
+        .filter((field) => isEntityReference(field) || Object.keys(field.option_labels ?? {}).length > 0)
+        .map((field): [string, FacadeField] => [field.identifier, field]),
     );
 
     await keepApplied(panel, watching, (locale) => {
+      // The entities of the container are named too: a field of entities holds the global id of one. They are read each
+      // time the fields are drawn, since an entity made after the tab was set up (a framework, from its field) has a name too.
+      const entities = entityLabels();
       for (const term of panel.querySelectorAll<HTMLElement>('.entity-fields dt[data-field]')) {
-        const labels = named.get(term.dataset.field ?? '');
+        const field = named.get(term.dataset.field ?? '');
+        const labels = field ? (isEntityReference(field) ? entities : (field.option_labels ?? {})) : undefined;
         const detail = term.nextElementSibling as HTMLElement | null;
-        if (!labels || !detail || detail.classList.contains('entity-empty')) continue;
+        if (!labels || !detail || detail.classList.contains('entity-empty') || detail.dataset.visualized === 'true') continue;
 
         const items = [...detail.querySelectorAll<HTMLElement>('li')];
         for (const element of items.length > 0 ? items : [detail]) {

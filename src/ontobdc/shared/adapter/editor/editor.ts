@@ -14,6 +14,12 @@ export type EditorOptions = {
   multivalued?: boolean;
   /** The values of the field are documents of the container, chosen from its files. */
   documents?: boolean;
+  /** The entity types the field of entities can point to; none when it can point to any. */
+  entityTypes?: string[];
+  /** What each of those types is called, in the language of the interface, by type. */
+  entityTypeLabels?: Record<string, string>;
+  /** The entity the field takes belongs to the entity being edited: the list only makes a new one, it does not choose among the others. */
+  owned?: boolean;
   /** Who is edited (an entity's global id, or `new:<group>` for a new entity) and which field: how a list editor tells the listeners what the person asked. */
   owner?: string;
   field?: string;
