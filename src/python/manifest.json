@@ -54,7 +54,7 @@
     "html5rdf==1.2.1",
     "humanize==4.16.0",
     "importlib-metadata==9.0.1",
-    "infobim==0.15.0",
+    "infobim==0.16.1",
     "isodate==0.7.2",
     "lark==1.3.1",
     "linkify-it-py==2.2.0",
@@ -96,13 +96,13 @@
   ],
   "localWheels": [
     {
-      "file": "python/vendor/brasidatacenter-0.14.0-py3-none-any.whl",
-      "pypi": "brasidatacenter==0.14.0",
+      "file": "python/vendor/brasidatacenter-0.16.1-py3-none-any.whl",
+      "pypi": "brasidatacenter==0.16.1",
       "note": "Built from local brasidatacenter source."
     },
     {
-      "file": "python/vendor/ontobdc-0.26.0-py3-none-any.whl",
-      "pypi": "ontobdc==0.26.0",
+      "file": "python/vendor/ontobdc-0.27.1-py3-none-any.whl",
+      "pypi": "ontobdc==0.27.1",
       "note": "Built from local ontobdc source."
     }
   ]
