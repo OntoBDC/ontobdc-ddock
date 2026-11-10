@@ -248,7 +248,7 @@ type CoreEvents = {
   /** The user asked to open a group (a dataset) of the database; group is its path in the container. */
   'presentation.database.group.open.requested': { group: string };
   /** The person asked for a new entity: of the type `entityType`, or of the type the group (a dataset's path in the container) holds. `values` has the fields the form starts with, by name. */
-  'presentation.entity.new.requested': { entityType?: string; group?: string; values?: Record<string, string> };
+  'presentation.entity.new.requested': { entityType?: string; group?: string; values?: Record<string, string>; /** Set when the entity is made to be chosen in a field of another one: the editor that waits for it, and the tab to go back to. */ reference?: { owner: string; field: string; panelId: string } };
   /** The user opened an item of the database; id is the global id of the entity. */
   'presentation.database.item.opened': { group: string; id: string };
   /** The person asked to create an entity in group (a dataset's path in the container); `values` has the fields they filled in, by name, with their values. */

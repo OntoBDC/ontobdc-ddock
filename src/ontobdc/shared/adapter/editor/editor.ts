@@ -23,6 +23,8 @@ export type EditorOptions = {
   /** Who is edited (an entity's global id, or `new:<group>` for a new entity) and which field: how a list editor tells the listeners what the person asked. */
   owner?: string;
   field?: string;
+  /** The tab where the entity is edited: where an entity made for one of its fields goes back to. */
+  panelId?: string;
 };
 
 /** The widget with which a person changes the value of one field. */

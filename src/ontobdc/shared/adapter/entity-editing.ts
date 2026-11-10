@@ -68,6 +68,7 @@ export async function startEditing(id: string): Promise<void> {
       owned: term.dataset.owned === 'true',
       entityTypeLabels: term.dataset.entityTypeLabels ? (JSON.parse(term.dataset.entityTypeLabels) as Record<string, string>) : undefined,
       owner: id,
+      panelId: `entity:${id}`,
       field: name,
     });
     original.set(detail, [...detail.childNodes]);

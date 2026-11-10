@@ -127,6 +127,7 @@ export default function makeEntityNew({ id }: { id: string }): Mountable {
         multivalued: field.multivalued === true,
         documents,
         owner: `new:${groupId}`,
+        panelId: `entity-new:${groupId}`,
         field: field.identifier,
         optionLabels: Object.fromEntries((field.options ?? []).map((option) => [option, nameIn(field.option_labels?.[option], getLocale()) ?? option])),
       });

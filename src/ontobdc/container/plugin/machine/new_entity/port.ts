@@ -16,4 +16,6 @@ export type NewEntityRequest = {
   entityType?: string;
   group?: string;
   values?: Record<string, string>;
+  /** The entity is made to be chosen in a field of another one: the editor that waits for it, and the tab to go back to. */
+  reference?: { owner: string; field: string; panelId: string };
 };

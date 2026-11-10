@@ -18,7 +18,11 @@ export async function setUpCaching(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       const settled = (): void => {
         if (installing.state === 'redundant') reject(new Error('the service worker was not installed'));
-        else if (installing.state === 'activated' && navigator.serviceWorker.controller) resolve();
+        else if (installing.state === 'activated') {
+          // Activating includes taking the page: a worker that is active and does not control it never will.
+          if (navigator.serviceWorker.controller) resolve();
+          else reject(new Error('the service worker is active but does not control the page'));
+        }
       };
       installing.addEventListener('statechange', settled);
       navigator.serviceWorker.addEventListener('controllerchange', settled);

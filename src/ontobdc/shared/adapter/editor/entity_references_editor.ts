@@ -10,7 +10,7 @@ const SEPARATOR = '|';
  * list to choose another from (by group and type, with the choice of making a new one in a group, which is added
  * when it is saved). The value is their global ids separated by `|`, as the data source holds them.
  */
-export default function entityReferencesEditor({ value, label, owner = '', field = '', entityTypes = [], entityTypeLabels = {} }: EditorOptions): Editor {
+export default function entityReferencesEditor({ value, label, owner = '', field = '', panelId = '', entityTypes = [], entityTypeLabels = {} }: EditorOptions): Editor {
   const ids: string[] = value.split(SEPARATOR).map((id) => id.trim()).filter(Boolean);
   const names = new Map<string, string>();
   const listeners: Array<() => void> = [];
@@ -64,8 +64,8 @@ export default function entityReferencesEditor({ value, label, owner = '', field
   select.addEventListener('change', () => {
     const chosen = select.value;
     select.value = '';
-    if (chosen.startsWith(NEW_TYPE_PREFIX)) requestNewEntityForType(owner, field, chosen.slice(NEW_TYPE_PREFIX.length));
-    else if (chosen.startsWith(NEW_PREFIX)) requestNewEntityFor(owner, field, chosen.slice(NEW_PREFIX.length));
+    if (chosen.startsWith(NEW_TYPE_PREFIX)) requestNewEntityForType({ owner, field, panelId }, chosen.slice(NEW_TYPE_PREFIX.length));
+    else if (chosen.startsWith(NEW_PREFIX)) requestNewEntityFor({ owner, field, panelId }, chosen.slice(NEW_PREFIX.length));
     else add(chosen);
   });
   registerReferenceEditor(owner, field, (id, name) => add(id, name));

@@ -76,16 +76,13 @@ export function entityLabels(except?: string): Record<string, Record<string, str
   return labels;
 }
 
-/** Who asked for an entity to be created so that it is chosen in a field: the editor that waits for it. */
-type Reference = { owner: string; field: string };
-const waiting = new Map<string, Reference>();
-/** Who asked for an entity of a type the container had no dataset for, by type: the group does not exist until it is made. */
-const waitingTypes = new Map<string, Reference>();
+/** Who asked for an entity to be created so that it is chosen in a field: the editor that waits for it, and the tab it is in. */
+export type ReferenceRequest = { owner: string; field: string; panelId: string };
+/** The requests waiting for their entity, by the tab where it is filled in (`entity-new:<group>`). */
+const pending = new Map<string, ReferenceRequest>();
 const editors = new Map<string, (id: string, name: string) => void>();
 const keyOf = (owner: string, field: string): string => `${owner}\u0000${field}`;
-
-/** The tab where what `owner` is being edited is: the new entity (`new:<group>`) or the entity. */
-export const panelOf = (owner: string): string => (owner.startsWith('new:') ? `entity-new:${owner.slice('new:'.length)}` : `entity:${owner}`);
+const NEW_TAB_PREFIX = 'entity-new:';
 
 /** Registers the editor of a field of entities, which takes the entity that is created for it. */
 export function registerReferenceEditor(owner: string, field: string, take: (id: string, name: string) => void): void {
@@ -96,42 +93,40 @@ export function registerReferenceEditor(owner: string, field: string, take: (id:
 export function forgetReferenceEditors(owner: string): void {
   const prefix = `${owner}\u0000`;
   for (const key of [...editors.keys()]) if (key.startsWith(prefix)) editors.delete(key);
-  for (const [group, reference] of [...waiting]) if (reference.owner === owner) waiting.delete(group);
-  for (const [type, reference] of [...waitingTypes]) if (reference.owner === owner) waitingTypes.delete(type);
+  for (const [tab, request] of [...pending]) if (request.owner === owner) pending.delete(tab);
 }
 
-/** Asks for a new entity in the group, to be chosen in the field of `owner` when it is created. */
-export function requestNewEntityFor(owner: string, field: string, group: string): void {
-  waiting.set(group, { owner, field });
-  eventBus.publish('presentation.entity.new.requested', 'entity_reference_editor', { group });
+/** Asks for a new entity in the group, to be chosen in the field of the editor that asks, when it is created. */
+export function requestNewEntityFor(request: ReferenceRequest, group: string): void {
+  eventBus.publish('presentation.entity.new.requested', 'entity_reference_editor', { group, reference: request });
 }
 
-/** Asks for a new entity of the type, to be chosen in the field of `owner` when it is created: the container gets its dataset if it had none. */
-export function requestNewEntityForType(owner: string, field: string, entityType: string): void {
-  waitingTypes.set(entityType, { owner, field });
-  eventBus.publish('presentation.entity.new.requested', 'entity_reference_editor', { entityType });
+/** Asks for a new entity of the type, to be chosen in the field of the editor that asks, when it is created: the container gets its dataset if it had none. */
+export function requestNewEntityForType(request: ReferenceRequest, entityType: string): void {
+  eventBus.publish('presentation.entity.new.requested', 'entity_reference_editor', { entityType, reference: request });
+}
+
+/** Records that the tab of the new entity of the group is where an entity is made for a field: called once the group is known. */
+export function awaitCreatedIn(group: string, request: ReferenceRequest): void {
+  pending.set(`${NEW_TAB_PREFIX}${group}`, request);
 }
 
 /**
- * Gives the entity just created in the group (of the type) to the field that asked for it, in the group or in the type,
- * and returns the tab to go back to; nothing when no field asked for it, or the editor is gone.
+ * Gives the entity just created in the group to the field that asked for it, and returns the tab to go back to;
+ * nothing when no field asked for it, or the editor is gone.
  */
-export function deliverCreated(group: string, id: string, name: string, type: string): string | null {
-  const reference = waiting.get(group) ?? waitingTypes.get(type);
-  waiting.delete(group);
-  waitingTypes.delete(type);
-  const take = reference ? editors.get(keyOf(reference.owner, reference.field)) : undefined;
-  if (!reference || !take) return null;
+export function deliverCreated(group: string, id: string, name: string): string | null {
+  const tab = `${NEW_TAB_PREFIX}${group}`;
+  const request = pending.get(tab);
+  pending.delete(tab);
+  const take = request ? editors.get(keyOf(request.owner, request.field)) : undefined;
+  if (!request || !take) return null;
   take(id, name);
-  return panelOf(reference.owner);
+  return request.panelId;
 }
 
 // A new entity whose tab is closed without being saved is not waited for.
 eventBus.subscribe('presentation.main.panel.closed', ({ payload }) => {
   const id = payload?.id ?? '';
-  if (!id.startsWith('entity-new:')) return;
-  const group = id.slice('entity-new:'.length);
-  waiting.delete(group);
-  const type = EntityRepository.getInstance().findGroup(group)?.entityTypes[0];
-  if (type) waitingTypes.delete(type);
+  if (id.startsWith(NEW_TAB_PREFIX)) pending.delete(id);
 });

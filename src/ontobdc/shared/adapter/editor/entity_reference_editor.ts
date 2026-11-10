@@ -9,7 +9,7 @@ import { registerReferenceEditor, requestNewEntityFor, requestNewEntityForType }
  * group; the entity that is saved there is chosen here, and the tab of what is edited comes back. The value is
  * the global id of the entity, as the data source holds it.
  */
-export default function entityReferenceEditor({ value, label, owner = '', field = '', entityTypes = [], entityTypeLabels = {}, owned = false }: EditorOptions): Editor {
+export default function entityReferenceEditor({ value, label, owner = '', field = '', panelId = '', entityTypes = [], entityTypeLabels = {}, owned = false }: EditorOptions): Editor {
   const select = document.createElement('select');
   select.setAttribute('aria-label', label);
   const none = document.createElement('option');
@@ -34,13 +34,13 @@ export default function entityReferenceEditor({ value, label, owner = '', field 
     if (select.value.startsWith(NEW_TYPE_PREFIX)) {
       const type = select.value.slice(NEW_TYPE_PREFIX.length);
       select.value = chosen;
-      requestNewEntityForType(owner, field, type);
+      requestNewEntityForType({ owner, field, panelId }, type);
       return;
     }
     if (select.value.startsWith(NEW_PREFIX)) {
       const group = select.value.slice(NEW_PREFIX.length);
       select.value = chosen;
-      requestNewEntityFor(owner, field, group);
+      requestNewEntityFor({ owner, field, panelId }, group);
       return;
     }
     chosen = select.value;

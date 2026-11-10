@@ -1,3 +1,4 @@
+import { awaitCreatedIn, type ReferenceRequest } from '@/ontobdc/shared/adapter/entity-references';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { nameIn, type Facade } from '@/ontobdc/shared/adapter/facade-labels';
 import type { CapabilityContext, CapabilityMetadata } from '@/ontobdc/shared/domain/model/capability';
@@ -20,6 +21,8 @@ export class EntityNewTabOpenedCapability {
     const found = context.etl.read(context.machine, context.requestId, 'entity_new_facade_found')?.result as { facade?: Facade; group?: string } | undefined;
     if (!found?.facade || !found.group) throw new Error('No state found the facade of the entity.');
 
+    // Registered before the tab opens, so that closing it unsaved cancels the request.
+    if (context.parameters.reference) awaitCreatedIn(found.group, JSON.parse(context.parameters.reference) as ReferenceRequest);
     eventBus.publish('presentation.main.panel.open.requested', 'entity_new_tab_opened', {
       container: 'surface',
       id: `entity-new:${found.group}`,

@@ -1,3 +1,4 @@
+import { createdTypeOf } from '@/ontobdc/shared/adapter/entity-group-type';
 import { EntityRepository } from '@/ontobdc/shared/adapter/entity-repository';
 import type { CapabilityContext, CapabilityMetadata } from '@/ontobdc/shared/domain/model/capability';
 
@@ -21,11 +22,7 @@ export class EntityTypeResolvedCapability {
     if (!type && groupId) {
       const group = EntityRepository.getInstance().findGroup(groupId);
       if (!group) throw new Error(`The database has no group ${groupId}.`);
-      // The group names its types by IRI and its entities by the name of the type: the type is the IRI of the one
-      // the group declares, or, when it declares several, of the one the first entity is of.
-      const named = group.items[0]?.type;
-      type = group.entityTypes.length === 1 ? group.entityTypes[0] : group.entityTypes.find((iri) => iri.split('#').pop() === named);
-      if (!type) throw new Error(`The group ${group.title} has no entity type to create an entity of.`);
+      type = createdTypeOf(group);
     }
     if (!type) throw new Error('The request for a new entity names neither a type nor a group.');
 

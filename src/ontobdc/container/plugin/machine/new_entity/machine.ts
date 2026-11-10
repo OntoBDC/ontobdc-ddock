@@ -111,6 +111,7 @@ export class NewEntityMachine implements NewEntityHandlerPort {
         entityType: this.request.entityType,
         group: this.request.group,
         values: JSON.stringify(this.request.values ?? {}),
+        reference: this.request.reference ? JSON.stringify(this.request.reference) : undefined,
       },
     });
   }

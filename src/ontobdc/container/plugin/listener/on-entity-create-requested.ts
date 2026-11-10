@@ -1,4 +1,5 @@
 import { quoted, requestCommand } from '@/ontobdc/shared/adapter/command-request';
+import { createdTypeOf } from '@/ontobdc/shared/adapter/entity-group-type';
 import { deliverCreated } from '@/ontobdc/shared/adapter/entity-references';
 import { EntityRepository } from '@/ontobdc/shared/adapter/entity-repository';
 import { eventBus, type AppEvent } from '@/ontobdc/shared/adapter/event-bus';
@@ -52,8 +53,8 @@ export class OnEntityCreateRequested {
 
     try {
       const entities = EntityRepository.getInstance().findGroup(group);
-      const type = entities?.entityTypes[0] || entities?.items[0]?.type;
-      if (!type) throw new Error(`The group ${group} has no entity type to create an instance of.`);
+      if (!entities) throw new Error(`The database has no group ${group}.`);
+      const type = createdTypeOf(entities);
 
       // The command parser has no escape syntax: the JSON goes inside single quotes,
       // so any apostrophe in a value is written as its JSON escape.
@@ -71,7 +72,7 @@ export class OnEntityCreateRequested {
       // The name an entity is chosen by: the one given, else the one its facade gives every instance (a 5W2H is called 5W2H).
       const given = EntityRepository.getInstance().facadeOf(group)?.fields.find((field) => ['title', 'name'].includes(field.identifier) && field.default_value)?.default_value;
       const name = values.name || values.title || given || id;
-      const back = deliverCreated(group, id, name, type);
+      const back = deliverCreated(group, id, name);
       if (back) {
         eventBus.publish('presentation.main.panel.open.requested', SOURCE, { container: 'surface', id: back, component: back.startsWith('entity-new:') ? 'entity_new' : 'entity', title: '' });
       } else {

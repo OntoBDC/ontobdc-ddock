@@ -63,6 +63,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (path.startsWith('python/pyodide/') || path.startsWith('python/wheels/')) {
-    event.respondWith(runtimeInfo().then((info) => (info.mutable.has(path.split('/').pop()) ? fetch(request) : cacheFirst(request, info.name))));
+    // Without `python/cache.json` (not deployed, or not readable) the runtime is not kept, but it is still downloaded:
+    // the cache is an aid and must not stop the application. The same failure stops this worker from activating,
+    // which is how the page is told that the cache could not be set up.
+    event.respondWith(runtimeInfo().then(
+      (info) => (info.mutable.has(path.split('/').pop()) ? fetch(request) : cacheFirst(request, info.name)),
+      () => fetch(request),
+    ));
   }
 });
