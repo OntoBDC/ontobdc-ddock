@@ -17,6 +17,7 @@ export type PythonWorkerRequest =
   | { type: 'invalidate'; paths?: string[] };
 
 export type PythonWorkerResponse =
+  | { type: 'progress'; stage: 'runtime' | 'packages' | 'wheels' }
   | { type: 'ready'; ontobdcVersion: string }
   | { type: 'failed'; message: string }
   | ({ type: 'result' } & PythonCommandResult)

@@ -6,9 +6,17 @@
     <meta name="theme-color" content="#181818" />
     <link rel="icon" type="image/png" href="/asset/logo-system.png" />
     <title>OntoBDC for custom OpenBIM Workflows</title>
+    <style>
+      /* What the page shows from the first frame until the application draws itself over it. */
+      html, body { margin: 0; background: #181818; }
+      .boot-splash { position: fixed; inset: 0; display: grid; place-items: center; background: #181818; }
+      .boot-splash-spinner { width: 36px; height: 36px; border: 3px solid #3a3a3a; border-top-color: #1f9fdd; border-radius: 50%; animation: boot-splash-spin 0.9s linear infinite; }
+      @keyframes boot-splash-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .boot-splash-spinner { animation-duration: 3s; } }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app"><div class="boot-splash" role="status" aria-label="Loading"><div class="boot-splash-spinner"></div></div></div>
     <script type="module" src="/ontobdc/web/main.ts"></script>
   </body>
 </html>

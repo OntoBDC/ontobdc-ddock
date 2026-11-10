@@ -6,9 +6,10 @@ export function mountPythonStatus(host: HTMLElement): () => void {
   indicator.className = 'python-status';
   indicator.setAttribute('role', 'status');
   indicator.setAttribute('aria-live', 'polite');
-  const update = (connected: boolean): void => {
-    const label = `Pyodide: ${connected ? 'connected' : 'disconnected'}`;
-    indicator.dataset.state = connected ? 'connected' : 'unplugged';
+  const STAGES = { runtime: 'loading the runtime', packages: 'loading the packages', wheels: 'installing the packages of the project' } as const;
+  const update = (connected: boolean, stage?: keyof typeof STAGES): void => {
+    const label = `Pyodide: ${connected ? 'connected' : stage ? STAGES[stage] : 'disconnected'}`;
+    indicator.dataset.state = connected ? 'connected' : stage ? 'loading' : 'unplugged';
     indicator.title = label;
     indicator.setAttribute('aria-label', label);
     const paths = connected
@@ -18,12 +19,15 @@ export function mountPythonStatus(host: HTMLElement): () => void {
   };
   update(false);
   host.prepend(indicator);
+  // The step of the loading the runtime is at, while it is loading: a report of the state that is not ready does not erase it.
+  let stage: keyof typeof STAGES | undefined;
   const unsubscribe = [
-    eventBus.subscribe('presentation.python.state.reported', ({ payload }) => update(payload?.ready ?? false)),
-    eventBus.subscribe('presentation.python.ready', () => update(true)),
-    eventBus.subscribe('presentation.python.loading', () => update(false)),
-    eventBus.subscribe('presentation.python.failed', () => update(false)),
-    eventBus.subscribe('presentation.python.disconnected', () => update(false)),
+    eventBus.subscribe('presentation.python.state.reported', ({ payload }) => update(payload?.ready ?? false, payload?.ready ? undefined : stage)),
+    eventBus.subscribe('presentation.python.ready', () => { stage = undefined; update(true); }),
+    eventBus.subscribe('presentation.python.loading', () => { stage = 'runtime'; update(false, stage); }),
+    eventBus.subscribe('presentation.python.progress', ({ payload }) => { stage = payload?.stage; update(false, stage); }),
+    eventBus.subscribe('presentation.python.failed', () => { stage = undefined; update(false); }),
+    eventBus.subscribe('presentation.python.disconnected', () => { stage = undefined; update(false); }),
   ];
   eventBus.publish('presentation.python.state.requested', 'python-status');
   return () => {

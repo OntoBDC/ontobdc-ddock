@@ -96,7 +96,8 @@ function vendored() {
   try {
     const wheels = JSON.parse(readFileSync(join(OUT, 'wheels.json'), 'utf8'));
     const runtime = readdirSync(join(OUT, 'pyodide'));
-    return runtime.some((file) => file.endsWith('.wasm'))
+    return existsSync(join(OUT, 'cache.json'))
+      && runtime.some((file) => file.endsWith('.wasm'))
       && wheels.every((file) => existsSync(join(OUT, 'wheels', file)));
   } catch {
     return false;
@@ -194,6 +195,9 @@ async function vendorFromPypi(spec, target) {
   return wheel.filename;
 }
 
+/** The wheels built from the source on disk: they keep the version of the source, so the browser must not keep them. */
+const mutableWheels = [];
+
 async function vendorWheels() {
   const target = join(OUT, 'wheels');
   mkdirSync(target, { recursive: true });
@@ -217,6 +221,7 @@ async function vendorWheels() {
       const wheel = built.get(name).path;
       copyFileSync(wheel, join(target, basename(wheel)));
       files.push(basename(wheel));
+      mutableWheels.push(basename(wheel));
       continue;
     }
     if (pypi) {
@@ -246,5 +251,7 @@ if (process.argv.includes('--wheels-only')) {
 await vendorPyodide();
 await vendorWheels();
 writeFileSync(join(OUT, 'packages.json'), JSON.stringify(manifest.pyodidePackages, null, 2));
+// What the service worker of the browser needs to know to keep the runtime: its version, and the files it must not keep.
+writeFileSync(join(OUT, 'cache.json'), JSON.stringify({ pyodide: manifest.pyodide, mutable: mutableWheels }, null, 2));
 writeFileSync(STAMP, stamp);
 console.log(`[python] vendored into ${OUT} (${readdirSync(join(OUT, 'pyodide')).length} runtime files)`);

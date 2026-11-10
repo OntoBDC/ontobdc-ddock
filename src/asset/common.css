@@ -26,6 +26,10 @@
 
   .python-status { display: inline-flex; align-items: center; color: var(--status-error); }
   .python-status[data-state="connected"] { color: var(--status-success); }
+  .python-status[data-state="loading"] { color: var(--status-warning, var(--text-secondary)); }
+  .python-status[data-state="loading"] svg { animation: python-status-pulse 1.1s ease-in-out infinite; }
+  @keyframes python-status-pulse { 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { .python-status[data-state="loading"] svg { animation: none; } }
   .python-status svg { width: 18px; height: 18px; }
   .python-status::after { content: '|'; margin-left: 8px; color: var(--border-strong); }
   .statusbar-permission::after { content: '|'; margin-left: 8px; color: var(--border-strong); }

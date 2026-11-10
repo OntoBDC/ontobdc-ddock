@@ -156,6 +156,8 @@ type CoreEvents = {
 
   /** The Python worker is loading the runtime and its local packages. */
   'presentation.python.loading': undefined;
+  /** The runtime is at one of the steps of loading: the runtime itself, the packages of Pyodide, the wheels of the project. */
+  'presentation.python.progress': { stage: 'runtime' | 'packages' | 'wheels' };
   /** Runtime and packages are ready; includes the installed OntoBDC version. */
   'presentation.python.ready': { ontobdcVersion: string };
   /** Python initialization failed; ready remains false. */

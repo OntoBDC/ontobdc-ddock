@@ -1,3 +1,4 @@
+import { setUpCaching } from '@/ontobdc/shared/adapter/caching';
 import { eventBus } from '@/ontobdc/shared/adapter/event-bus';
 import { commandCacheKey, commandCache } from '@/ontobdc/shared/adapter/command-cache';
 import { CommandQueue } from '@/ontobdc/shared/adapter/command-queue';
@@ -152,13 +153,17 @@ export function initPython(): () => void {
     eventBus.subscribe('presentation.python.queue.requested', () => {
       eventBus.publish('presentation.python.queue.changed', 'python', queue.snapshot());
     }),
-    eventBus.subscribe('presentation.main.layout.loaded', () => {
+    eventBus.subscribe('presentation.main.layout.loaded', async () => {
       if (worker) return;
       eventBus.publish('presentation.python.loading', 'python');
+      // What the worker downloads goes through the cache when it is there before the worker is.
+      await setUpCaching();
+      if (worker) return;
       try {
         worker = new Worker(new URL('./python-worker.ts', import.meta.url), { type: 'module' });
         worker.onmessage = ({ data }: MessageEvent<PythonWorkerResponse>) => {
           if (data.type === 'failed') return fail(data.message);
+          if (data.type === 'progress') return eventBus.publish('presentation.python.progress', 'python', { stage: data.stage });
           if (data.type === 'ready') {
             ready = true;
             eventBus.publish('presentation.python.ready', 'python', { ontobdcVersion: data.ontobdcVersion });

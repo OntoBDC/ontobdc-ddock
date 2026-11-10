@@ -38,6 +38,7 @@ export class NewContainerMachine implements NewContainerHandlerPort {
 
   private active: NewContainerStateValue = NewContainerState.UNDEFINED;
   private root: FileSystemDirectoryHandle | undefined;
+  private folder: string | undefined;
   private readonly capabilities = new TransformationCapabilityExecutor(capabilityImports);
 
   constructor(
@@ -57,6 +58,11 @@ export class NewContainerMachine implements NewContainerHandlerPort {
   /** The folder the person picked as the root of the workspace, once the machine has run. */
   rootFolder(): FileSystemDirectoryHandle | undefined {
     return this.root;
+  }
+
+  /** The name of the folder, inside the root, that the container was made in, once the machine has run. */
+  containerFolderName(): string | undefined {
+    return this.folder;
   }
 
   /** Walks the statechart to its final state and returns it. */
@@ -101,7 +107,9 @@ export class NewContainerMachine implements NewContainerHandlerPort {
         }
       }
     } finally {
-      this.root = new StorageRoot({ etl: this.etl, requestId, machine: NewContainerMachine.NAME }).folder();
+      const storage = new StorageRoot({ etl: this.etl, requestId, machine: NewContainerMachine.NAME });
+      this.root = storage.folder();
+      this.folder = storage.createdFolder();
       actor.stop();
       this.etl.clear(NewContainerMachine.NAME, requestId);
     }

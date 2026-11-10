@@ -24,10 +24,14 @@ async function readFileList(file: string): Promise<string[]> {
 
 /** Load only the vendored runtime and packages, without blocking the UI thread. */
 async function startPython(): Promise<PyodideAPI> {
+  const progress = (stage: 'runtime' | 'packages' | 'wheels'): void => self.postMessage({ type: 'progress', stage } satisfies PythonWorkerResponse);
+  progress('runtime');
   const { loadPyodide } = await import(/* @vite-ignore */ `${pythonBase}pyodide/pyodide.mjs`) as typeof import('pyodide');
   const python = await loadPyodide({ indexURL: `${pythonBase}pyodide/` });
+  progress('packages');
   await python.loadPackage(await readFileList('packages.json'));
 
+  progress('wheels');
   const wheelUrls = (await readFileList('wheels.json')).map((file) => `${pythonBase}wheels/${file}`);
   const wheels = python.toPy(wheelUrls);
   try {

@@ -49,7 +49,9 @@ export class OnContainerNewRequested {
 
       const root = machine.rootFolder();
       if (!root) throw new Error('There is no folder to open the container from.');
-      const folder = (await ContainerFileRepository.of(root).directory(this.request.name.trim())).handle;
+      const name = machine.containerFolderName();
+      if (!name) throw new Error('The machine did not say the folder the container was made in.');
+      const folder = (await ContainerFileRepository.of(root).directory(name)).handle;
       await openContainer(workspaceContainerSource(folder, root), SOURCE);
     } catch (error) {
       if (error instanceof ContainerCreationCancelledError) {

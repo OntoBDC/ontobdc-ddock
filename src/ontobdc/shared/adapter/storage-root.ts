@@ -9,6 +9,8 @@ import type { PythonCommandResult, PythonMount } from '@/ontobdc/shared/domain/m
 const ROOT_RECORD = 'storage_root';
 /** The folder of the container the person picked, kept under the name of the state that picks it. */
 const CONTAINER_RECORD = 'storage_container_defined';
+/** The folder the container was made in: its name is the one the command says, which is not always the one the person typed. */
+const CREATED_RECORD = 'workspace_container_created';
 /** Where Python itself looks for the root when no folder was mounted for it. */
 const ROOT_PATH = '/storage';
 const METADATA_DIRECTORY = '.__ontobdc__';
@@ -92,12 +94,6 @@ export class StorageRoot {
     }
   }
 
-  /** Whether the listing of the root has a container whose folder is called `name`. */
-  async hasContainer(name: string): Promise<boolean> {
-    const containers = await StorageRoot.listIn(await this.mount(false, false));
-    return (containers ?? []).some((entry) => entry.location?.replace(/\/+$/, '').split('/').pop() === name);
-  }
-
   /** Asks Python to run `ontobdc container --refresh` on the container called `name`, a folder of the root. */
   async refreshContainer(name: string): Promise<void> {
     const mount = await this.mount(true);
@@ -113,10 +109,13 @@ export class StorageRoot {
   /**
    * Asks Python to put the container in the root: `ontobdc container --attach` when the person
    * picked the folder of a container that already is on disk, `--create` when there is none yet.
+   * The folder the container is in is recorded for the states that follow: the name of the folder is the
+   * one the command says it made (`infobim project --create` makes the folder from a slug of the title), not the one typed.
    */
   async createContainer(name: string): Promise<void> {
     const mount = await this.mount(true);
-    const argv = this.containerFolder()
+    const picked = this.containerFolder();
+    const argv = picked
       ? ['ontobdc', 'container', '--attach', '--container', `${mount.cwd ?? mount.path}/${name}`, '--json']
       : ['ontobdc', 'container', '--create', name, '--json'];
     let done: PythonCommandResult;
@@ -126,6 +125,21 @@ export class StorageRoot {
       throw new Error(error instanceof Error ? error.message : String(error), { cause: error });
     }
     if (done.code !== 0) throw new Error(cliError(done));
+
+    const path = picked ? picked.name : parseCliResponse<{ path?: unknown }>(done.stdout)?.content?.path;
+    const folder = typeof path === 'string' ? path.replace(/\/+$/, '').split('/').pop() : undefined;
+    if (!folder) throw new Error('The command did not say the folder it made the container in.');
+    this.context.etl.write(this.machine, this.context.requestId, CREATED_RECORD, {
+      phase: 'done',
+      entity: { name: folder },
+      result: { folder },
+    });
+  }
+
+  /** The folder the container was made in, once `createContainer` has run. */
+  createdFolder(): string | undefined {
+    const record = this.context.etl.read(this.machine, this.context.requestId, CREATED_RECORD);
+    return (record?.result as { folder?: string } | undefined)?.folder;
   }
 
   /** Whether Python finds a root of the workspace in the folder as it is mounted now. */
